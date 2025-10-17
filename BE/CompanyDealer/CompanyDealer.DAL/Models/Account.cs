@@ -14,6 +14,10 @@ namespace CompanyDealer.DAL.Models
         public bool IsActive { get; set; } = true;
         public int Role { get; set; } // 0: admin, 1: dealer staff, 2: manager staff, 3: evm staff
 
+        // Đăng nhập cơ bản
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+
         // Navigation property
         public Guid DealerId { get; set; }
         public Dealer Dealer { get; set; } = null!;

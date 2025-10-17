@@ -11,6 +11,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // DI for repositories
 builder.Services.AddScoped<VehicleRepository>();
+builder.Services.AddScoped<CompanyDealer.DAL.Repositories.IAccountRepository, CompanyDealer.DAL.Repositories.AccountRepository>();
+builder.Services.AddScoped<CompanyDealer.Services.IAuthService, CompanyDealer.Services.AuthService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

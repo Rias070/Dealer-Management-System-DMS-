@@ -12,6 +12,7 @@ namespace CompanyDealer.DAL.Models
         public string Address { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
+        public string Role { get; set; } = string.Empty; // admin | dealer staff | manager staff | evm staff
 
         // Navigation property
         public Guid DealerId { get; set; }

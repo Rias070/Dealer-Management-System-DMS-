@@ -17,21 +17,57 @@ namespace CompanyDealer.Controllers
             _vehicleRepository = vehicleRepository;
         }
 
-        // POST: api/vehicle
-        [HttpPost]
-        public async Task<ActionResult<Vehicle>> Create([FromBody] Vehicle vehicle)
+        // GET: api/vehicle //View all vehicles
+        [HttpGet]
+        public async Task<ActionResult> GetAll()
         {
-            if (vehicle == null)
+            var vehicles = await _vehicleRepository.GetAllAsync();
+            return Ok(vehicles);
+        }
+
+        public class VehicleCreateUpdateDto
+        {
+            public string Make { get; set; } = string.Empty;
+            public string Model { get; set; } = string.Empty;
+            public int Year { get; set; }
+            public string VIN { get; set; } = string.Empty;
+            public string Color { get; set; } = string.Empty;
+            public decimal Price { get; set; }
+            public string Description { get; set; } = string.Empty;
+            public bool IsAvailable { get; set; } = true;
+            public Guid InventoryId { get; set; }
+            public Guid CategoryId { get; set; }
+        }
+
+        // POST: api/vehicle //Create a new vehicle
+        [HttpPost]
+        public async Task<ActionResult<Vehicle>> Create([FromBody] VehicleCreateUpdateDto request)
+        {
+            if (request == null)
             {
                 return BadRequest();
             }
 
-            vehicle.Id = Guid.NewGuid();
+            var vehicle = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = request.Make,
+                Model = request.Model,
+                Year = request.Year,
+                VIN = request.VIN,
+                Color = request.Color,
+                Price = request.Price,
+                Description = request.Description,
+                IsAvailable = request.IsAvailable,
+                InventoryId = request.InventoryId,
+                CategoryId = request.CategoryId
+            };
+
             var created = await _vehicleRepository.CreateAsync(vehicle);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
-        // GET: api/vehicle/{id}
+        // GET: api/vehicle/{id} //View a vehicle by its ID
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<Vehicle>> GetById([FromRoute] Guid id)
         {
@@ -43,16 +79,30 @@ namespace CompanyDealer.Controllers
             return Ok(vehicle);
         }
 
-        // PUT: api/vehicle/{id}
+        // PUT: api/vehicle/{id} //Update a vehicle by its ID
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<Vehicle>> Update([FromRoute] Guid id, [FromBody] Vehicle vehicle)
+        public async Task<ActionResult<Vehicle>> Update([FromRoute] Guid id, [FromBody] VehicleCreateUpdateDto request)
         {
-            if (vehicle == null || id == Guid.Empty)
+            if (request == null || id == Guid.Empty)
             {
                 return BadRequest();
             }
 
-            vehicle.Id = id;
+            var vehicle = new Vehicle
+            {
+                Id = id,
+                Make = request.Make,
+                Model = request.Model,
+                Year = request.Year,
+                VIN = request.VIN,
+                Color = request.Color,
+                Price = request.Price,
+                Description = request.Description,
+                IsAvailable = request.IsAvailable,
+                InventoryId = request.InventoryId,
+                CategoryId = request.CategoryId
+            };
+
             var updated = await _vehicleRepository.UpdateAsync(vehicle);
             if (updated == null)
             {
@@ -62,7 +112,7 @@ namespace CompanyDealer.Controllers
             return Ok(updated);
         }
 
-        // DELETE: api/vehicle/{id}
+        // DELETE: api/vehicle/{id} //Delete a vehicle by its ID
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {

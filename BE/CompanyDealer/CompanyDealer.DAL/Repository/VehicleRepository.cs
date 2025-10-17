@@ -4,14 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using CompanyDealer.DAL.Models;
+using CompanyDealer.DAL.Data;
 
 namespace CompanyDealer.DAL.Repositories
 {
     public class VehicleRepository
     {
-        private readonly DbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public VehicleRepository(DbContext context)
+        public VehicleRepository(ApplicationDbContext context)
         {
             _context = context;
         }

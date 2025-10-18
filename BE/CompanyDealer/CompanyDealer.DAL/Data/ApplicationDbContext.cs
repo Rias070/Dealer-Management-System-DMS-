@@ -27,6 +27,7 @@ namespace CompanyDealer.DAL.Data
         public DbSet<Promotion> Promotions { get; set; } = null!;
         public DbSet<Bill> Bills { get; set; } = null!;
         public DbSet<SaleContract> SaleContracts { get; set; } = null!;
+        public DbSet<InventoryVehicle> InventoryVehicles { get; set; } = null!; // ✅ new
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -73,18 +74,28 @@ namespace CompanyDealer.DAL.Data
                 .HasForeignKey(i => i.DealerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Vehicle relationships
-            modelBuilder.Entity<Vehicle>()
-                .HasOne(v => v.Inventory)
-                .WithMany(i => i.Vehicles)
-                .HasForeignKey(v => v.InventoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-
+            // Vehicle - Category
             modelBuilder.Entity<Vehicle>()
                 .HasOne(v => v.Category)
                 .WithMany(c => c.Vehicles)
                 .HasForeignKey(v => v.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Vehicle - Inventory many-to-many (with Quantity)
+            modelBuilder.Entity<InventoryVehicle>()
+                .HasKey(iv => new { iv.InventoryId, iv.VehicleId });
+
+            modelBuilder.Entity<InventoryVehicle>()
+                .HasOne(iv => iv.Inventory)
+                .WithMany(i => i.InventoryVehicles)
+                .HasForeignKey(iv => iv.InventoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InventoryVehicle>()
+                .HasOne(iv => iv.Vehicle)
+                .WithMany(v => v.InventoryVehicles)
+                .HasForeignKey(iv => iv.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Quotation relationships
             modelBuilder.Entity<Quotation>()

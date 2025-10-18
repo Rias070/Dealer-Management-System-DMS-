@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251017200900_AccountRoleInt")]
-    partial class AccountRoleInt
+    [Migration("20251018040101_ChangeVehicleInventory")]
+    partial class ChangeVehicleInventory
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,12 +56,20 @@ namespace CompanyDealer.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -238,14 +246,29 @@ namespace CompanyDealer.DAL.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("DealerId");
 
                     b.ToTable("Inventories");
+                });
+
+            modelBuilder.Entity("CompanyDealer.DAL.Models.InventoryVehicle", b =>
+                {
+                    b.Property<Guid>("InventoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("InventoryId", "VehicleId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("InventoryVehicles");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Order", b =>
@@ -450,9 +473,6 @@ namespace CompanyDealer.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("InventoryId")
-                        .HasColumnType("uuid");
-
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
@@ -477,8 +497,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("InventoryId");
 
                     b.ToTable("Vehicles");
                 });
@@ -553,6 +571,25 @@ namespace CompanyDealer.DAL.Migrations
                     b.Navigation("Dealer");
                 });
 
+            modelBuilder.Entity("CompanyDealer.DAL.Models.InventoryVehicle", b =>
+                {
+                    b.HasOne("CompanyDealer.DAL.Models.Inventory", "Inventory")
+                        .WithMany("InventoryVehicles")
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompanyDealer.DAL.Models.Vehicle", "Vehicle")
+                        .WithMany("InventoryVehicles")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inventory");
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("CompanyDealer.DAL.Models.Order", b =>
                 {
                     b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
@@ -620,15 +657,7 @@ namespace CompanyDealer.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("CompanyDealer.DAL.Models.Inventory", "Inventory")
-                        .WithMany("Vehicles")
-                        .HasForeignKey("InventoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Category");
-
-                    b.Navigation("Inventory");
                 });
 
             modelBuilder.Entity("OrderPromotion", b =>
@@ -670,7 +699,7 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Inventory", b =>
                 {
-                    b.Navigation("Vehicles");
+                    b.Navigation("InventoryVehicles");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Order", b =>
@@ -684,6 +713,8 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Vehicle", b =>
                 {
+                    b.Navigation("InventoryVehicles");
+
                     b.Navigation("TestDriveRecords");
                 });
 #pragma warning restore 612, 618

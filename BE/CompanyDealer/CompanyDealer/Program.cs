@@ -2,6 +2,8 @@ using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using CompanyDealer.DataInitalizer;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,28 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Ensure database is up-to-date and seed demo data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        // apply migrations (safe to call; if you prefer EnsureCreated replace this)
+        await db.Database.MigrateAsync();
+
+        // seed demo data (idempotent)
+        await DataInitializer.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        // Log and rethrow so the host fails to start when seeding fails
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+        throw;
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

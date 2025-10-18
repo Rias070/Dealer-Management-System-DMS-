@@ -29,7 +29,6 @@ namespace CompanyDealer.DAL.Repositories
         public async Task<Vehicle?> GetByIdAsync(Guid id)
         {
             return await _context.Set<Vehicle>()
-                .Include(v => v.Inventory)
                 .Include(v => v.Category)
                 .Include(v => v.TestDriveRecords)
                 .FirstOrDefaultAsync(v => v.Id == id);
@@ -39,7 +38,7 @@ namespace CompanyDealer.DAL.Repositories
         public async Task<List<Vehicle>> GetAllAsync()
         {
             return await _context.Set<Vehicle>()
-                .Include(v => v.Inventory)
+         
                 .Include(v => v.Category)
                 .Include(v => v.TestDriveRecords)
                 .ToListAsync();

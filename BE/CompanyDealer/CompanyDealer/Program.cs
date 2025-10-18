@@ -1,5 +1,7 @@
 using CompanyDealer.DAL.Data;
+using CompanyDealer.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +9,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
+// DI for repositories
+builder.Services.AddScoped<VehicleRepository>();
+builder.Services.AddScoped<CompanyDealer.DAL.Repositories.IAccountRepository, CompanyDealer.DAL.Repositories.AccountRepository>();
+builder.Services.AddScoped<CompanyDealer.Services.IAuthService, CompanyDealer.Services.AuthService>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

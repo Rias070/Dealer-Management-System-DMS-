@@ -22,7 +22,7 @@ namespace CompanyDealer.DAL.Repository.TokenRepo
         public async Task<Token> GetByUserIdAsync(Guid userId)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(t => t.UserId == userId);
+                .FirstOrDefaultAsync(t => t.AccountId == userId);
         }
     }
 }

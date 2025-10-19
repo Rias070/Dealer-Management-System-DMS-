@@ -11,6 +11,7 @@ namespace CompanyDealer.DAL.Repository.UserRepo
         Task<Account> GetByUserNameWithRolesAsync(string userName);
         Task AssignRoleToUserAsync(Guid userId, string roleName);
         Task<Account> GetUserByUserIdAsync(Guid userId);
+        Task<Guid?> GetDealerIdByNameAsync(string dealerName);
     }
 }
 

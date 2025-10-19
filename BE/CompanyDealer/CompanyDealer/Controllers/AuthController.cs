@@ -1,4 +1,5 @@
 using CompanyDealer.BLL.DTOs.AuthDTOs;
+using CompanyDealer.BLL.ExceptionHandle;
 using CompanyDealer.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +24,9 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.LoginAsync(request);
         if (!response.Success)
-            return Unauthorized(new { message = response.Message });
+            return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", response.Message));
 
-        return Ok(response);
+        return Ok(ApiResponse<object>.SuccessResponse(response, "Login successfully"));
     }
 
     [HttpPost("register")]
@@ -33,30 +34,28 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.RegisterAsync(request);
         if (!response.Success)
-            return BadRequest(new { message = response.Message });
+            return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", response.Message));
 
-        return Ok(response);
+        return Ok(ApiResponse<object>.SuccessResponse(response, "Register successfully"));
     }
+
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh()
     {
-        // Get the refresh token from the X-Refresh-Token header
         string refreshToken = Request.Headers["X-Refresh-Token"];
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Unauthorized(new { message = "Refresh token is required" });
+            return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", "Refresh token is required"));
         }
 
-        // Get the expired access token from the Authorization header
         string authHeader = Request.Headers["Authorization"];
         if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
         {
-            return Unauthorized(new { message = "Access token is required" });
+            return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", "Access token is required"));
         }
 
         string accessToken = authHeader.Substring("Bearer ".Length).Trim();
 
-        // Create a refresh token request using the values from headers
         var request = new RefreshTokenRequestDto
         {
             AccessToken = accessToken,
@@ -65,32 +64,30 @@ public class AuthController : ControllerBase
 
         var response = await _authService.RefreshTokenAsync(request);
         if (!response.Success)
-            return Unauthorized(new { message = response.Message });
+            return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", response.Message));
 
-        return Ok(response);
+        return Ok(ApiResponse<object>.SuccessResponse(response, "Refresh token successfully"));
     }
 
     [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        // Get the token from the Authorization header
         string authHeader = Request.Headers["Authorization"];
         if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
         {
-            return Unauthorized(new { message = "Invalid token" });
+            return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", "Invalid token"));
         }
 
         string accessToken = authHeader.Substring("Bearer ".Length).Trim();
 
-        // Get user ID from token and logout
         var principal = _jwtService.GetPrincipalFromExpiredToken(accessToken);
         var userId = System.Guid.Parse(principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
         var response = await _authService.LogoutAsync(userId);
 
         if (!response.Success)
-            return BadRequest(new { message = response.Message });
+            return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", response.Message));
 
-        return Ok(response);
+        return Ok(ApiResponse<object>.SuccessResponse(response, "Logout successfully"));
     }
 }

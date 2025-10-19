@@ -37,17 +37,22 @@ namespace CompanyDealer.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
+            Console.WriteLine($"Login attempt - Username: {request.Username}");
+
             if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
             {
+                Console.WriteLine("Login failed - Missing username or password");
                 return BadRequest("Username and password are required");
             }
 
             var result = await _authService.LoginAsync(request.Username, request.Password);
             if (!result.Success)
             {
+                Console.WriteLine($"Login failed - {result.Error}");
                 return Unauthorized(result.Error);
             }
 
+            Console.WriteLine($"Login successful for user: {result.Username}");
             return Ok(new LoginResponse
             {
                 Id = result.AccountId!.Value,

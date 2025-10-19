@@ -3,6 +3,7 @@ using System;
 using CompanyDealer.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251019131201_ThemRole")]
+    partial class ThemRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,17 +27,17 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("AccountRole", b =>
                 {
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid>("AccountsId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("RoleId")
+                    b.Property<Guid>("RolesId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("AccountId", "RoleId");
+                    b.HasKey("AccountsId", "RolesId");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RolesId");
 
-                    b.ToTable("AccountRole", (string)null);
+                    b.ToTable("AccountRole");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Account", b =>
@@ -405,7 +408,7 @@ namespace CompanyDealer.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Role");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.SaleContract", b =>
@@ -483,26 +486,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.ToTable("TestDriveRecords");
                 });
 
-            modelBuilder.Entity("CompanyDealer.DAL.Models.Token", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("Tokens");
-                });
-
             modelBuilder.Entity("CompanyDealer.DAL.Models.Vehicle", b =>
                 {
                     b.Property<Guid>("Id")
@@ -567,17 +550,15 @@ namespace CompanyDealer.DAL.Migrations
                 {
                     b.HasOne("CompanyDealer.DAL.Models.Account", null)
                         .WithMany()
-                        .HasForeignKey("AccountId")
+                        .HasForeignKey("AccountsId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_AccountRole_Account_AccountId");
+                        .IsRequired();
 
                     b.HasOne("CompanyDealer.DAL.Models.Role", null)
                         .WithMany()
-                        .HasForeignKey("RoleId")
+                        .HasForeignKey("RolesId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_AccountRole_Role_RoleId");
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Account", b =>
@@ -711,17 +692,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.Navigation("Dealer");
 
                     b.Navigation("Vehicle");
-                });
-
-            modelBuilder.Entity("CompanyDealer.DAL.Models.Token", b =>
-                {
-                    b.HasOne("CompanyDealer.DAL.Models.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Vehicle", b =>

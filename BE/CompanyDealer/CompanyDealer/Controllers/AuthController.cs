@@ -1,62 +1,96 @@
-using System;
-using System.Threading.Tasks;
-using CompanyDealer.DAL.Models;
-using CompanyDealer.Services;
+using CompanyDealer.BLL.DTOs.AuthDTOs;
+using CompanyDealer.BLL.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace CompanyDealer.Controllers
+using System.Threading.Tasks;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    private readonly AuthService _authService;
+    private readonly JwtService _jwtService;
+
+    public AuthController(AuthService authService, JwtService jwtService)
     {
-        private readonly IAuthService _authService;
+        _authService = authService;
+        _jwtService = jwtService;
+    }
 
-        public AuthController(IAuthService authService)
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    {
+        var response = await _authService.LoginAsync(request);
+        if (!response.Success)
+            return Unauthorized(new { message = response.Message });
+
+        return Ok(response);
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    {
+        var response = await _authService.RegisterAsync(request);
+        if (!response.Success)
+            return BadRequest(new { message = response.Message });
+
+        return Ok(response);
+    }
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh()
+    {
+        // Get the refresh token from the X-Refresh-Token header
+        string refreshToken = Request.Headers["X-Refresh-Token"];
+        if (string.IsNullOrEmpty(refreshToken))
         {
-            _authService = authService;
+            return Unauthorized(new { message = "Refresh token is required" });
         }
 
-        public class LoginRequest
+        // Get the expired access token from the Authorization header
+        string authHeader = Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
         {
-            public string Username { get; set; } = string.Empty;
-            public string Password { get; set; } = string.Empty;
+            return Unauthorized(new { message = "Access token is required" });
         }
 
-        public class LoginResponse
+        string accessToken = authHeader.Substring("Bearer ".Length).Trim();
+
+        // Create a refresh token request using the values from headers
+        var request = new RefreshTokenRequestDto
         {
-            public Guid Id { get; set; }
-            public string Name { get; set; } = string.Empty;
-            public string Email { get; set; } = string.Empty;
-            public int Role { get; set; }
-            public string Username { get; set; } = string.Empty;
-            public bool IsActive { get; set; }
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+
+        var response = await _authService.RefreshTokenAsync(request);
+        if (!response.Success)
+            return Unauthorized(new { message = response.Message });
+
+        return Ok(response);
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        // Get the token from the Authorization header
+        string authHeader = Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+        {
+            return Unauthorized(new { message = "Invalid token" });
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-            {
-                return BadRequest("Username and password are required");
-            }
+        string accessToken = authHeader.Substring("Bearer ".Length).Trim();
 
-            var result = await _authService.LoginAsync(request.Username, request.Password);
-            if (!result.Success)
-            {
-                return Unauthorized(result.Error);
-            }
+        // Get user ID from token and logout
+        var principal = _jwtService.GetPrincipalFromExpiredToken(accessToken);
+        var userId = System.Guid.Parse(principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+        var response = await _authService.LogoutAsync(userId);
 
-            return Ok(new LoginResponse
-            {
-                Id = result.AccountId!.Value,
-                Name = result.Name,
-                Email = result.Email,
-                Role = result.Role,
-                Username = result.Username,
-                IsActive = result.IsActive
-            });
-        }
+        if (!response.Success)
+            return BadRequest(new { message = response.Message });
+
+        return Ok(response);
     }
 }

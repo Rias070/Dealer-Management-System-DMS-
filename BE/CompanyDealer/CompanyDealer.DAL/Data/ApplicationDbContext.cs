@@ -15,6 +15,8 @@ namespace CompanyDealer.DAL.Data
         }
 
         public DbSet<Account> Accounts { get; set; } = null!;
+        public DbSet<Role> Roles { get; set; } = null!;
+        public DbSet<Token> Tokens { get; set; } = null!; 
         public DbSet<Dealer> Dealers { get; set; } = null!;
         public DbSet<DealerContract> DealerContracts { get; set; } = null!;
         public DbSet<Feedback> Feedbacks { get; set; } = null!;
@@ -137,6 +139,38 @@ namespace CompanyDealer.DAL.Data
                 .HasMany(o => o.Promotions)
                 .WithMany(p => p.Orders)
                 .UsingEntity(j => j.ToTable("OrderPromotions"));
+
+            // Account - Role many-to-many
+            modelBuilder.Entity<Account>()
+                .HasMany(a => a.Roles)
+                .WithMany(r => r.Accounts)
+                .UsingEntity<Dictionary<string, object>>(
+                    "AccountRole",
+                    j => j
+                        .HasOne<Role>()
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .HasConstraintName("FK_AccountRole_Role_RoleId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j => j
+                        .HasOne<Account>()
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .HasConstraintName("FK_AccountRole_Account_AccountId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j =>
+                    {
+                        j.HasKey("AccountId", "RoleId");
+                        j.ToTable("AccountRole");
+                    }
+                );
+
+            // Account - Token one-to-many
+            modelBuilder.Entity<Token>()
+                .HasOne(t => t.Account)
+                .WithMany() // or .WithMany(a => a.Tokens) if you have a collection
+                .HasForeignKey(t => t.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

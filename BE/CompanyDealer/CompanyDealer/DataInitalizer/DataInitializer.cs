@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Models;
+using BCrypt.Net;
 
 namespace CompanyDealer.DataInitalizer
 {
@@ -16,114 +17,103 @@ namespace CompanyDealer.DataInitalizer
         public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
-
-            // Idempotent: if any dealer exists we assume DB already seeded.
             if (await context.Dealers.AnyAsync()) return;
 
-            // Dealer
-            var dealerId = Guid.NewGuid();
-            var dealer = new Dealer
+            // Seed Roles
+            var companyAdminRole = new Role { Id = Guid.NewGuid(), RoleName = "CompanyAdmin" };
+            var companyStaffRole = new Role { Id = Guid.NewGuid(), RoleName = "CompanyStaff" };
+            var dealerAdminRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerAdmin" };
+            var dealerStaffRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerStaff" };
+            await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole);
+
+            // Seed Dealers
+            var dealer1Id = Guid.NewGuid();
+            var dealer2Id = Guid.NewGuid();
+            var dealer3Id = Guid.NewGuid();
+
+            var dealer1 = new Dealer
             {
-                Id = dealerId,
-                Name = "Demo Dealer",
+                Id = dealer1Id,
+                Name = "Demo Dealer 1",
                 Location = "Hanoi, Vietnam",
-                ContactInfo = "demo@dealer.local | +84 912 345 678",
+                ContactInfo = "demo1@dealer.local | +84 912 345 678",
                 RegistrationDate = DateTime.UtcNow.AddYears(-1),
                 IsActive = true
             };
 
-            // Accounts - ensure DealerId is set (Account model has DealerId)
-            var adminAccount = new Account
+            var dealer2 = new Dealer
+            {
+                Id = dealer2Id,
+                Name = "Demo Dealer 2",
+                Location = "Ho Chi Minh City, Vietnam",
+                ContactInfo = "demo2@dealer.local | +84 912 111 222",
+                RegistrationDate = DateTime.UtcNow.AddYears(-2),
+                IsActive = true
+            };
+
+            var dealer3 = new Dealer
+            {
+                Id = dealer3Id,
+                Name = "Demo Dealer 3",
+                Location = "Da Nang, Vietnam",
+                ContactInfo = "demo3@dealer.local | +84 912 333 444",
+                RegistrationDate = DateTime.UtcNow.AddYears(-3),
+                IsActive = true
+            };
+
+            // Accounts for each dealer
+            var adminAccount1 = new Account
             {
                 Id = Guid.NewGuid(),
-                Name = "Demo Admin",
-                ContactPerson = "Admin Person",
-                Email = "admin@dealer.local",
+                Name = "Company Admin 1",
+                ContactPerson = "Admin Person 1",
+                Email = "admin1@dealer.local",
                 Phone = "+84 912 345 678",
                 Address = "123 Demo Street",
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                Role = 0,
-                Username = "admin",
-                Password = "admin123", // NOTE: hash before production use
-                DealerId = dealerId
+                Username = "admin1",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                DealerId = dealer1Id,
+                Roles = new[] { companyAdminRole }
             };
 
-            var staffAccount = new Account
+            var adminAccount2 = new Account
             {
                 Id = Guid.NewGuid(),
-                Name = "Sales Staff",
-                ContactPerson = "Staff Person",
-                Email = "staff@dealer.local",
-                Phone = "+84 912 000 000",
-                Address = "123 Demo Street",
+                Name = "Company Admin 2",
+                ContactPerson = "Admin Person 2",
+                Email = "admin2@dealer.local",
+                Phone = "+84 912 111 222",
+                Address = "456 Demo Street",
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                Role = 1,
-                Username = "staff",
-                Password = "staff123",
-                DealerId = dealerId
+                Username = "admin2",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                DealerId = dealer2Id,
+                Roles = new[] { companyAdminRole }
             };
 
-            // Categories (Category model contains Id, Name, Description)
-            var sedanCategoryId = Guid.NewGuid();
-            var suvCategoryId = Guid.NewGuid();
-            var sedan = new Category
-            {
-                Id = sedanCategoryId,
-                Name = "Sedan",
-                Description = "4-door passenger cars"
-            };
-            var suv = new Category
-            {
-                Id = suvCategoryId,
-                Name = "SUV",
-                Description = "Sport Utility Vehicles"
-            };
-
-            // Inventory (Inventory model requires DealerId)
-            var inventory = new Inventory
+            var adminAccount3 = new Account
             {
                 Id = Guid.NewGuid(),
-                DealerId = dealerId,
-                LastUpdated = DateTime.UtcNow
-            };
-
-            // Vehicles (Vehicle model requires CategoryId and other basic fields)
-            var vehicle1 = new Vehicle
-            {
-                Id = Guid.NewGuid(),
-                Make = "Toyota",
-                Model = "Camry",
-                Year = 2022,
-                VIN = "VIN-CAMRY-0001",
-                Color = "White",
-                Price = 30000m,
-                Description = "Demo Toyota Camry",
-                IsAvailable = true,
-                CategoryId = sedanCategoryId
-            };
-
-            var vehicle2 = new Vehicle
-            {
-                Id = Guid.NewGuid(),
-                Make = "Honda",
-                Model = "CR-V",
-                Year = 2023,
-                VIN = "VIN-CRV-0001",
-                Color = "Black",
-                Price = 35000m,
-                Description = "Demo Honda CR-V",
-                IsAvailable = true,
-                CategoryId = suvCategoryId
+                Name = "Company Admin 3",
+                ContactPerson = "Admin Person 3",
+                Email = "admin3@dealer.local",
+                Phone = "+84 912 333 444",
+                Address = "789 Demo Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "admin3",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                DealerId = dealer3Id,
+                Roles = new[] { companyAdminRole }
             };
 
             // Add in proper order to satisfy FKs
-            await context.Dealers.AddAsync(dealer);
-            await context.Categories.AddRangeAsync(sedan, suv);
-            await context.Inventories.AddAsync(inventory);
-            await context.Vehicles.AddRangeAsync(vehicle1, vehicle2);
-            await context.Accounts.AddRangeAsync(adminAccount, staffAccount);
+            await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole);
+            await context.Dealers.AddRangeAsync(dealer1, dealer2, dealer3);
+            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3);
 
             await context.SaveChangesAsync();
         }

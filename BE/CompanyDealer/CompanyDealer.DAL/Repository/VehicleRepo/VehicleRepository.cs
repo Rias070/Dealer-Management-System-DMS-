@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using CompanyDealer.DAL.Models;
 using CompanyDealer.DAL.Data;
 
-namespace CompanyDealer.DAL.Repositories
+namespace CompanyDealer.DAL.Repository.VehicleRepo
 {
     public class VehicleRepository
     {

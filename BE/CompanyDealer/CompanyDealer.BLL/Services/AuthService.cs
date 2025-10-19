@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using BCrypt.Net;
 using CompanyDealer.DAL.Models;
+using CompanyDealer.BLL.ExceptionHandle;
 
 namespace CompanyDealer.BLL.Services
 {
@@ -30,26 +31,17 @@ namespace CompanyDealer.BLL.Services
             var user = await _userRepository.GetByUserNameWithRolesAsync(request.UserName);
             if (user == null)
             {
-                return new LoginResponseDto
-                {
-                    Success = false,
-                    Message = "Invalid username or password"
-                };
+                throw new ApiException.BadRequestException("Invalid username or password");
             }
 
             bool passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
             if (!passwordValid)
             {
-                return new LoginResponseDto
-                {
-                    Success = false,
-                    Message = "Invalid username or password"
-                };
+                throw new ApiException.BadRequestException("Invalid username or password");
             }
 
             var (accessToken, refreshToken) = await _jwtService.SaveTokensAsync(user.Id);
 
-            // Populate the roles as a list of role names
             var roles = user.Roles?.Select(r => r.RoleName).ToList() ?? new List<string>();
 
             return new LoginResponseDto
@@ -67,88 +59,60 @@ namespace CompanyDealer.BLL.Services
         {
             using (var transaction = await _userRepository.BeginTransactionAsync())
             {
-                try
+                var existingUser = await _userRepository.FindAsync(u => u.Username == request.Username);
+                if (existingUser.Any())
                 {
-                    var existingUser = await _userRepository.FindAsync(u => u.Username == request.Username);
-                    if (existingUser.Any())
-                    {
-                        return new RegisterResponseDto
-                        {
-                            Success = false,
-                            Message = "Username already exists"
-                        };
-                    }
-
-                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-                    // Thay thế dealerId = Guid.NewGuid();
-                    var dealerId = await _userRepository.GetDealerIdByNameAsync(request.DealerName);
-                    if (dealerId == null)
-                    {
-                        await transaction.RollbackAsync();
-                        return new RegisterResponseDto
-                        {
-                            Success = false,
-                            Message = $"Dealer '{request.DealerName}' does not exist"
-                        };
-                    }
-
-                    var user = new DAL.Models.Account
-                    {
-                        Id = Guid.NewGuid(),
-                        Username = request.Username,
-                        Password = passwordHash,
-                        Name = request.Name,
-                        Email = request.Email,
-                        Address = request.Address,
-                        Phone = request.Phone,
-                        ContactPerson = request.ContactPerson,
-                        CreatedAt = DateTime.UtcNow,
-                        DealerId = dealerId.Value,
-                        Roles = new List<Role>()
-                    };
-
-                    // Nếu Account có trường Dob
-                    var dobProp = user.GetType().GetProperty("Dob");
-                    if (dobProp != null && request.Dob.HasValue)
-                        dobProp.SetValue(user, request.Dob.Value);
-
-                    await _userRepository.AddAsync(user);
-
-                    // Kiểm tra role có tồn tại không
-                    string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "CompanyStaff";
-                    var role = await _roleRepository.GetByNameAsync(roleName);
-                    if (role == null)
-                    {
-                        await transaction.RollbackAsync();
-                        return new RegisterResponseDto
-                        {
-                            Success = false,
-                            Message = $"Role '{roleName}' does not exist"
-                        };
-                    }
-
-                    // Gán role cho user
-                    await _userRepository.AssignRoleToUserAsync(user.Id, roleName);
-
-                    await transaction.CommitAsync();
-
-                    return new RegisterResponseDto
-                    {
-                        Success = true,
-                        Message = "Register successful",
-                        UserId = user.Id
-                    };
+                    throw new ApiException.BadRequestException("Username already exists");
                 }
-                catch (Exception ex)
+
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+                var dealerId = await _userRepository.GetDealerIdByNameAsync(request.DealerName);
+                if (dealerId == null)
                 {
                     await transaction.RollbackAsync();
-                    return new RegisterResponseDto
-                    {
-                        Success = false,
-                        Message = $"Registration failed: {ex.Message}"
-                    };
+                    throw new ApiException.NotFoundException($"Dealer '{request.DealerName}' does not exist");
                 }
+
+                var user = new DAL.Models.Account
+                {
+                    Id = Guid.NewGuid(),
+                    Username = request.Username,
+                    Password = passwordHash,
+                    Name = request.Name,
+                    Email = request.Email,
+                    Address = request.Address,
+                    Phone = request.Phone,
+                    ContactPerson = request.ContactPerson,
+                    CreatedAt = DateTime.UtcNow,
+                    DealerId = dealerId.Value,
+                    Roles = new List<Role>()
+                };
+
+                var dobProp = user.GetType().GetProperty("Dob");
+                if (dobProp != null && request.Dob.HasValue)
+                    dobProp.SetValue(user, request.Dob.Value);
+
+                await _userRepository.AddAsync(user);
+
+                string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "CompanyStaff";
+                var role = await _roleRepository.GetByNameAsync(roleName);
+                if (role == null)
+                {
+                    await transaction.RollbackAsync();
+                    throw new ApiException.NotFoundException($"Role '{roleName}' does not exist");
+                }
+
+                await _userRepository.AssignRoleToUserAsync(user.Id, roleName);
+
+                await transaction.CommitAsync();
+
+                return new RegisterResponseDto
+                {
+                    Success = true,
+                    Message = "Register successful",
+                    UserId = user.Id
+                };
             }
         }
 
@@ -165,40 +129,33 @@ namespace CompanyDealer.BLL.Services
 
         public async Task<RefreshTokenResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
-            try
+            // Validate the expired access token
+            var principal = _jwtService.GetPrincipalFromExpiredToken(request.AccessToken);
+            if (principal == null)
             {
-                // Validate the expired access token
-                var principal = _jwtService.GetPrincipalFromExpiredToken(request.AccessToken);
-                var userId = Guid.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
-                // Refresh the token
-                var (success, newAccessToken, newRefreshToken) = await _jwtService.RefreshTokenAsync(request.RefreshToken);
-
-                if (!success)
-                {
-                    return new RefreshTokenResponseDto
-                    {
-                        Success = false,
-                        Message = "Invalid refresh token"
-                    };
-                }
-
-                return new RefreshTokenResponseDto
-                {
-                    Success = true,
-                    Message = "Token refreshed successfully",
-                    AccessToken = newAccessToken,
-                    RefreshToken = newRefreshToken
-                };
+                throw new ApiException.BadRequestException("Invalid access token");
             }
-            catch (Exception ex)
+
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
-                return new RefreshTokenResponseDto
-                {
-                    Success = false,
-                    Message = "Error refreshing token: " + ex.Message
-                };
+                throw new ApiException.BadRequestException("Invalid user identifier in token");
             }
+
+            var (success, newAccessToken, newRefreshToken) = await _jwtService.RefreshTokenAsync(request.RefreshToken);
+
+            if (!success)
+            {
+                throw new ApiException.BadRequestException("Invalid refresh token");
+            }
+
+            return new RefreshTokenResponseDto
+            {
+                Success = true,
+                Message = "Token refreshed successfully",
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
         }
     }
 }

@@ -2,8 +2,6 @@ using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
-using CompanyDealer.DataInitalizer;
-using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,33 +19,23 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175") // Vite default port
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
-// Ensure database is up-to-date and seed demo data
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var db = services.GetRequiredService<ApplicationDbContext>();
-        // apply migrations (safe to call; if you prefer EnsureCreated replace this)
-        await db.Database.MigrateAsync();
-
-        // seed demo data (idempotent)
-        await DataInitializer.SeedAsync(db);
-    }
-    catch (Exception ex)
-    {
-        // Log and rethrow so the host fails to start when seeding fails
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-        throw;
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -57,6 +45,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use CORS
+app.UseCors("AllowReactApp");
 
 app.UseAuthorization();
 

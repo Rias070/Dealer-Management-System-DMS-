@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using CompanyDealer.DAL.Models;
-using CompanyDealer.DAL.Repositories;
+using CompanyDealer.DAL.Repository;
+using CompanyDealer.DAL.Repository.VehicleRepo;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CompanyDealer.Controllers

@@ -12,7 +12,7 @@ namespace CompanyDealer.DAL.Models
         public string Address { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
-        public int Role { get; set; } // 0: admin, 1: dealer staff, 2: manager staff, 3: evm staff
+        public virtual ICollection<Role> Roles { get; set; } // many to many 
 
         // Đăng nhập cơ bản
         public string Username { get; set; } = string.Empty;

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CompanyDealer.DAL.Models
 {
@@ -17,14 +14,15 @@ namespace CompanyDealer.DAL.Models
         public decimal Price { get; set; }
         public string Description { get; set; } = string.Empty;
         public bool IsAvailable { get; set; } = true;
-        
-        // Navigation properties
-        public Guid InventoryId { get; set; }
-        public Inventory Inventory { get; set; } = null!;
-        
+
+        // Quan hệ
         public Guid CategoryId { get; set; }
         public Category Category { get; set; } = null!;
-        
+
+        // Liên kết nhiều-nhiều
+        public ICollection<InventoryVehicle> InventoryVehicles { get; set; } = new List<InventoryVehicle>();
+
+        // Lịch sử lái thử
         public ICollection<TestDriveRecord> TestDriveRecords { get; set; } = new List<TestDriveRecord>();
     }
 }

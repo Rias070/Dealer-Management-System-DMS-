@@ -33,7 +33,7 @@ namespace CompanyDealer.Controllers
                 Price = v.Price,
                 Description = v.Description,
                 IsAvailable = v.IsAvailable,
-                InventoryId = v.InventoryId,
+                
                 CategoryId = v.CategoryId
             });
             return Ok(dto);
@@ -63,7 +63,6 @@ namespace CompanyDealer.Controllers
             public decimal Price { get; set; }
             public string Description { get; set; } = string.Empty;
             public bool IsAvailable { get; set; }
-            public Guid InventoryId { get; set; }
             public Guid CategoryId { get; set; }
         }
 
@@ -87,7 +86,7 @@ namespace CompanyDealer.Controllers
                 Price = request.Price,
                 Description = request.Description,
                 IsAvailable = request.IsAvailable,
-                InventoryId = request.InventoryId,
+                
                 CategoryId = request.CategoryId
             };
 
@@ -103,7 +102,7 @@ namespace CompanyDealer.Controllers
                 Price = created.Price,
                 Description = created.Description,
                 IsAvailable = created.IsAvailable,
-                InventoryId = created.InventoryId,
+                
                 CategoryId = created.CategoryId
             };
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, dto);
@@ -129,7 +128,7 @@ namespace CompanyDealer.Controllers
                 Price = vehicle.Price,
                 Description = vehicle.Description,
                 IsAvailable = vehicle.IsAvailable,
-                InventoryId = vehicle.InventoryId,
+                
                 CategoryId = vehicle.CategoryId
             };
             return Ok(dto);
@@ -155,7 +154,7 @@ namespace CompanyDealer.Controllers
                 Price = request.Price,
                 Description = request.Description,
                 IsAvailable = request.IsAvailable,
-                InventoryId = request.InventoryId,
+                
                 CategoryId = request.CategoryId
             };
 
@@ -176,7 +175,7 @@ namespace CompanyDealer.Controllers
                 Price = updated.Price,
                 Description = updated.Description,
                 IsAvailable = updated.IsAvailable,
-                InventoryId = updated.InventoryId,
+                
                 CategoryId = updated.CategoryId
             };
             return Ok(dto);

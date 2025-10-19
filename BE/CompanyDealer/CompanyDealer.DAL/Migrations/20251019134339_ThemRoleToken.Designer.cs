@@ -3,6 +3,7 @@ using System;
 using CompanyDealer.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251019134339_ThemRoleToken")]
+    partial class ThemRoleToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -492,6 +495,9 @@ namespace CompanyDealer.DAL.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("AccountId1")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("RefreshToken")
                         .IsRequired()
                         .HasColumnType("text");
@@ -499,6 +505,8 @@ namespace CompanyDealer.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("AccountId1");
 
                     b.ToTable("Tokens");
                 });
@@ -715,9 +723,15 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Token", b =>
                 {
-                    b.HasOne("CompanyDealer.DAL.Models.Account", "Account")
+                    b.HasOne("CompanyDealer.DAL.Models.Account", null)
                         .WithMany()
                         .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompanyDealer.DAL.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

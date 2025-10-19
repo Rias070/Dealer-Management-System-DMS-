@@ -129,13 +129,13 @@ namespace CompanyDealer.BLL.Services
             else
             {
                 // Create new token entry
-                var tokenEntity = new Token
+                var token = new Token
                 {
                     Id = Guid.NewGuid(),
-                    UserId = userId,
+                    AccountId = userId, // <-- This must be a valid Account.Id
                     RefreshToken = refreshToken
                 };
-                await _tokenRepository.AddAsync(tokenEntity);
+                await _tokenRepository.AddAsync(token);
             }
 
             return (accessToken, refreshToken);
@@ -151,7 +151,7 @@ namespace CompanyDealer.BLL.Services
             }
 
             // Generate new tokens with roles
-            var newAccessToken = await GenerateAccessTokenWithRolesAsync(tokenEntity.UserId);
+            var newAccessToken = await GenerateAccessTokenWithRolesAsync(tokenEntity.AccountId);
             var newRefreshToken = GenerateRefreshToken();
 
             // Update tokens in database

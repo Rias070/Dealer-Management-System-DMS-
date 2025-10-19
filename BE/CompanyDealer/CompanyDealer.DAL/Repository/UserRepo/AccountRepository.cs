@@ -63,6 +63,12 @@ namespace CompanyDealer.DAL.Repository.UserRepo
         {
             return await _dbSet.FirstOrDefaultAsync(u => u.Id == userId);
         }
+
+        public async Task<Guid?> GetDealerIdByNameAsync(string dealerName)
+        {
+            var dealer = await _context.Set<Dealer>().FirstOrDefaultAsync(d => d.Name == dealerName);
+            return dealer?.Id;
+        }
     }
 }
 

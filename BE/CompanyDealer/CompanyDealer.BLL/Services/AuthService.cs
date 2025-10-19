@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BCrypt.Net;
+using CompanyDealer.DAL.Models;
 
 namespace CompanyDealer.BLL.Services
 {
@@ -48,8 +49,8 @@ namespace CompanyDealer.BLL.Services
 
             var (accessToken, refreshToken) = await _jwtService.SaveTokensAsync(user.Id);
 
-            // Assuming the first role is the main role (adjust as needed)
-            int role = user.Roles?.FirstOrDefault() != null ? Convert.ToInt32(user.Roles.First().Id) : 0;
+            // Populate the roles as a list of role names
+            var roles = user.Roles?.Select(r => r.RoleName).ToList() ?? new List<string>();
 
             return new LoginResponseDto
             {
@@ -57,7 +58,8 @@ namespace CompanyDealer.BLL.Services
                 Message = "Login successful",
                 UserId = user.Id,
                 Token = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                Roles = roles
             };
         }
 
@@ -79,6 +81,18 @@ namespace CompanyDealer.BLL.Services
 
                     string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+                    // Thay thế dealerId = Guid.NewGuid();
+                    var dealerId = await _userRepository.GetDealerIdByNameAsync(request.DealerName);
+                    if (dealerId == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return new RegisterResponseDto
+                        {
+                            Success = false,
+                            Message = $"Dealer '{request.DealerName}' does not exist"
+                        };
+                    }
+
                     var user = new DAL.Models.Account
                     {
                         Id = Guid.NewGuid(),
@@ -87,8 +101,11 @@ namespace CompanyDealer.BLL.Services
                         Name = request.Name,
                         Email = request.Email,
                         Address = request.Address,
+                        Phone = request.Phone,
+                        ContactPerson = request.ContactPerson,
                         CreatedAt = DateTime.UtcNow,
-                        IsActive = request.IsActive
+                        DealerId = dealerId.Value,
+                        Roles = new List<Role>()
                     };
 
                     // Nếu Account có trường Dob
@@ -99,7 +116,7 @@ namespace CompanyDealer.BLL.Services
                     await _userRepository.AddAsync(user);
 
                     // Kiểm tra role có tồn tại không
-                    string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "User";
+                    string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "CompanyStaff";
                     var role = await _roleRepository.GetByNameAsync(roleName);
                     if (role == null)
                     {

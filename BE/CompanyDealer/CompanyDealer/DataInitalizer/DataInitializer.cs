@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Models;
+using BCrypt.Net;
 
 namespace CompanyDealer.DataInitalizer
 {
@@ -16,9 +17,14 @@ namespace CompanyDealer.DataInitalizer
         public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
-
-            // Idempotent: if any dealer exists we assume DB already seeded.
             if (await context.Dealers.AnyAsync()) return;
+
+            // Seed Roles
+            var companyAdminRole = new Role { Id = Guid.NewGuid(), RoleName = "CompanyAdmin" };
+            var companyStaffRole = new Role { Id = Guid.NewGuid(), RoleName = "CompanyStaff" };
+            var dealerAdminRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerAdmin" };
+            var dealerStaffRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerAdmin" };
+            await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole);
 
             // Dealer
             var dealerId = Guid.NewGuid();
@@ -36,33 +42,33 @@ namespace CompanyDealer.DataInitalizer
             var adminAccount = new Account
             {
                 Id = Guid.NewGuid(),
-                Name = "Demo Admin",
+                Name = "Company Admin",
                 ContactPerson = "Admin Person",
                 Email = "admin@dealer.local",
                 Phone = "+84 912 345 678",
                 Address = "123 Demo Street",
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                Role = 0,
                 Username = "admin",
-                Password = "admin123", // NOTE: hash before production use
-                DealerId = dealerId
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                DealerId = dealerId,
+                Roles = new[] { companyAdminRole }
             };
 
             var staffAccount = new Account
             {
                 Id = Guid.NewGuid(),
-                Name = "Sales Staff",
+                Name = "Company Staff",
                 ContactPerson = "Staff Person",
                 Email = "staff@dealer.local",
                 Phone = "+84 912 000 000",
                 Address = "123 Demo Street",
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                Role = 1,
                 Username = "staff",
-                Password = "staff123",
-                DealerId = dealerId
+                Password = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                DealerId = dealerId,
+                Roles = new[] { companyStaffRole }
             };
 
             // Categories (Category model contains Id, Name, Description)
@@ -119,6 +125,7 @@ namespace CompanyDealer.DataInitalizer
             };
 
             // Add in proper order to satisfy FKs
+            await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole);
             await context.Dealers.AddAsync(dealer);
             await context.Categories.AddRangeAsync(sedan, suv);
             await context.Inventories.AddAsync(inventory);

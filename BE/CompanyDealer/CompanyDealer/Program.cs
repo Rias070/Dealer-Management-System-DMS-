@@ -112,7 +112,7 @@ builder.Services.AddScoped<CompanyDealer.DAL.Repository.RoleRepo.IRoleRepository
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.TokenRepo.ITokenRepository, CompanyDealer.DAL.Repository.TokenRepo.TokenRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
-
+builder.Services.AddScoped<CompanyDealer.BLL.Services.VehicleService>();
 
 
 builder.Services.AddControllers()

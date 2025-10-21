@@ -38,10 +38,10 @@ namespace CompanyDealer.BLL.Services
                 VehicleId = entity.Id,
                 Vehicle = MapToDto(entity)
             };
-        }
+            }
 
         public async Task<VehicleResponseDto> CreateAsync(VehicleRequestDto request)
-        {
+            {
             var vehicle = new Vehicle
             {
                 Id = request.Id ?? Guid.NewGuid(),
@@ -65,7 +65,7 @@ namespace CompanyDealer.BLL.Services
                 VehicleId = created.Id,
                 Vehicle = MapToDto(created)
             };
-        }
+            }
 
         public async Task<VehicleResponseDto> UpdateAsync(VehicleRequestDto request)
         {
@@ -106,7 +106,7 @@ namespace CompanyDealer.BLL.Services
             var deleted = await _vehicleRepository.DeleteAsync(id);
 
             return new VehicleResponseDto
-            {
+        {
                 Success = deleted,
                 Message = deleted ? "Vehicle deleted successfully" : "Vehicle not deleted",
                 VehicleId = id,
@@ -115,22 +115,14 @@ namespace CompanyDealer.BLL.Services
         }
 
         private static VehicleDto MapToDto(Vehicle v)
-        {
+            {
             if (v == null) return null;
 
             return new VehicleDto
             {
-                Id = v.Id,
-                Make = v.Make,
-                Model = v.Model,
-                Year = v.Year,
-                VIN = v.VIN,
-                Color = v.Color,
-                Price = v.Price,
-                Description = v.Description,
-                IsAvailable = v.IsAvailable,
-                CategoryId = v.CategoryId
-            };
         }
+
+        public Task<bool> DeleteAsync(Guid id)
+            => _repository.DeleteAsync(id);
     }
 }

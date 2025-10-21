@@ -118,6 +118,8 @@ builder.Services.AddScoped<CompanyDealer.DAL.Repository.UserRepo.IAccountReposit
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.RoleRepo.IRoleRepository, CompanyDealer.DAL.Repository.RoleRepo.RoleRepository>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.TokenRepo.ITokenRepository, CompanyDealer.DAL.Repository.TokenRepo.TokenRepository>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.VehicleRepo.IVehicleRepository, CompanyDealer.DAL.Repository.VehicleRepo.VehicleRepository>();
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.InventoryRepo.IInventoryRepository, CompanyDealer.DAL.Repository.InventoryRepo.InventoryRepository>();
+builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<VehicleService>();

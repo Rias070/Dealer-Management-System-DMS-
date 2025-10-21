@@ -8,11 +8,12 @@ using CompanyDealer.DAL.Data;
 
 namespace CompanyDealer.DAL.Repository.VehicleRepo
 {
-    public class VehicleRepository : IVehicleRepository
+    public class VehicleRepository : GenericRepository<Vehicle>, IVehicleRepository
     {
         private readonly ApplicationDbContext _context;
 
         public VehicleRepository(ApplicationDbContext context)
+            : base(context) 
         {
             _context = context;
         }

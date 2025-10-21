@@ -8,7 +8,7 @@ namespace CompanyDealer.DAL.Repository.VehicleRepo
     /// <summary>
     /// Repository abstraction for Vehicle entity.
     /// </summary>
-    public interface IVehicleRepository
+    public interface IVehicleRepository : IGenericRepository<Vehicle>
     {
         Task<Vehicle> CreateAsync(Vehicle vehicle);
 

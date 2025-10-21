@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
         if (!response.Success)
             return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", response.Message));
 
-        return Ok(ApiResponse<object>.SuccessResponse(response, "Login successfully"));
+        return Ok(ApiResponse<LoginResponseDto>.SuccessResponse(response, "Login successfully"));
     }
 
     [HttpPost("register")]
@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
         if (!response.Success)
             return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", response.Message));
 
-        return Ok(ApiResponse<object>.SuccessResponse(response, "Register successfully"));
+        return Ok(ApiResponse<RegisterResponseDto>.SuccessResponse(response, "Register successfully"));
     }
 
     [HttpPost("refresh")]
@@ -89,5 +89,28 @@ public class AuthController : ControllerBase
             return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", response.Message));
 
         return Ok(ApiResponse<object>.SuccessResponse(response, "Logout successfully"));
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+    {
+        string authHeader = Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            return Unauthorized(ApiResponse<object>.FailResponse("UNAUTHORIZED", "Invalid token"));
+
+        string accessToken = authHeader.Substring("Bearer ".Length).Trim();
+        var principal = _jwtService.GetPrincipalFromExpiredToken(accessToken);
+        var userId = Guid.Parse(principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+
+        await _authService.ChangePasswordAsync(userId, request);
+        return Ok(ApiResponse<object>.SuccessResponse(null, "Password changed successfully"));
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+    {
+        await _authService.ForgotPasswordAsync(request);
+        return Ok(ApiResponse<object>.SuccessResponse(null, "Password reset successfully"));
     }
 }

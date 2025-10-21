@@ -43,10 +43,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Authorization policies (giữ nguyên nếu bạn đang dùng ở nơi khác)
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireTeacherRole", policy => policy.RequireRole("Teacher"));
-    options.AddPolicy("RequireStudentRole", policy => policy.RequireRole("Student"));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+    options.AddPolicy("RequireCompanyAdminRole", policy => policy.RequireRole("CompanyAdmin"));
+    options.AddPolicy("RequireCompanyStaffRole", policy => policy.RequireRole("CompanyStaff"));
+    options.AddPolicy("RequireDealerAdminRole", policy => policy.RequireRole("DealerAdmin"));
+    options.AddPolicy("RequireDealerStaffRole", policy => policy.RequireRole("DealerStaff"));
+    options.AddPolicy("RequireDealerManagerRole", policy => policy.RequireRole("DealerManager"));
+    options.AddPolicy("RequireCompanyManagerRole", policy => policy.RequireRole("CompanyManager"));
 });
 
 // Controllers + JsonOptions (GỘP làm 1, tránh khai báo trùng)
@@ -117,7 +119,6 @@ builder.Services.AddScoped<CompanyDealer.DAL.Repository.RoleRepo.IRoleRepository
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.TokenRepo.ITokenRepository, CompanyDealer.DAL.Repository.TokenRepo.TokenRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
-<<<<<<< Updated upstream
 builder.Services.AddScoped<CompanyDealer.BLL.Services.VehicleService>();
 
 
@@ -141,8 +142,7 @@ builder.Services.AddCors(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-=======
->>>>>>> Stashed changes
+
 
 var app = builder.Build();
 
@@ -175,7 +175,7 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 app.UseCors("AllowReactApp");
-app.UseAuthentication();      // THÊM DÒNG NÀY
+app.UseAuthentication();     
 app.UseAuthorization();
 
 app.MapControllers();

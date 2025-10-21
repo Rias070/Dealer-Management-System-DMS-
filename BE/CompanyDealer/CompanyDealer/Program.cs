@@ -110,9 +110,14 @@ builder.Services.AddScoped<VehicleRepository>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.UserRepo.IAccountRepository, CompanyDealer.DAL.Repository.UserRepo.AccountRepository>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.RoleRepo.IRoleRepository, CompanyDealer.DAL.Repository.RoleRepo.RoleRepository>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.TokenRepo.ITokenRepository, CompanyDealer.DAL.Repository.TokenRepo.TokenRepository>();
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.VehicleRepo.IVehicleRepository, CompanyDealer.DAL.Repository.VehicleRepo.VehicleRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<VehicleService>();
 
+
+// Register repository interface
+//
 
 
 builder.Services.AddControllers()

@@ -8,7 +8,7 @@ using CompanyDealer.DAL.Data;
 
 namespace CompanyDealer.DAL.Repository.VehicleRepo
 {
-    public class VehicleRepository
+    public class VehicleRepository : IVehicleRepository
     {
         private readonly ApplicationDbContext _context;
 

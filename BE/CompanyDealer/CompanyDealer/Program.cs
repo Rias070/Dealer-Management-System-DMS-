@@ -1,4 +1,4 @@
-using CompanyDealer.BLL.Services;
+﻿using CompanyDealer.BLL.Services;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repository;
 using CompanyDealer.DAL.Repository.VehicleRepo;
@@ -15,17 +15,15 @@ using CompanyDealer.BLL.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 var configuration = builder.Configuration;
 builder.Services.Configure<CompanyDealer.BLL.DTOs.Settings.JwtSettings>(configuration.GetSection("AppSettings"));
-// Register configuration as singleton for DI
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
-// Add services to the container.
+// DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-// Add Authentication with JWT
+// Authentication (JWT)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -37,37 +35,49 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = configuration["Jwt:Audience"],
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"])),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)),
             ClockSkew = TimeSpan.Zero
         };
     });
 
+// Authorization policies (giữ nguyên nếu bạn đang dùng ở nơi khác)
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireCompanyAdminRole", policy => policy.RequireRole("CompanyAdmin"));
+    options.AddPolicy("RequireCompanyStaffRole", policy => policy.RequireRole("CompanyStaff"));
+    options.AddPolicy("RequireDealerAdminRole", policy => policy.RequireRole("DealerAdmin"));
+    options.AddPolicy("RequireDealerStaffRole", policy => policy.RequireRole("DealerStaff"));
+    options.AddPolicy("RequireDealerManagerRole", policy => policy.RequireRole("DealerManager"));
+    options.AddPolicy("RequireCompanyManagerRole", policy => policy.RequireRole("CompanyManager"));
+});
+
+// Controllers + JsonOptions (GỘP làm 1, tránh khai báo trùng)
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
-// Add Authorization with policies for different roles
-builder.Services.AddAuthorization(options =>
+// CORS
+builder.Services.AddCors(options =>
 {
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireTeacherRole", policy => policy.RequireRole("Teacher"));
-    options.AddPolicy("RequireStudentRole", policy => policy.RequireRole("Student"));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+        // Nếu bạn dùng cookie/session: bật dòng dưới
+        // .AllowCredentials();
+    });
 });
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
-    });
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "OneUron API", Version = "v1" });
-
 
     c.MapType<TimeOnly>(() => new OpenApiSchema
     {
@@ -75,7 +85,6 @@ builder.Services.AddSwaggerGen(c =>
         Format = "time",
         Example = new OpenApiString("08:30:00")
     });
-
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -102,9 +111,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-
-// DI for repositories
+// DI
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<VehicleRepository>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.UserRepo.IAccountRepository, CompanyDealer.DAL.Repository.UserRepo.AccountRepository>();
@@ -112,7 +119,7 @@ builder.Services.AddScoped<CompanyDealer.DAL.Repository.RoleRepo.IRoleRepository
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.TokenRepo.ITokenRepository, CompanyDealer.DAL.Repository.TokenRepo.TokenRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
-
+builder.Services.AddScoped<CompanyDealer.BLL.Services.VehicleService>();
 
 
 builder.Services.AddControllers()
@@ -136,41 +143,39 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
 var app = builder.Build();
-// Ensure database is up-to-date and seed demo data
+
+// Migrate + Seed
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var db = services.GetRequiredService<ApplicationDbContext>();
-        // apply migrations (safe to call; if you prefer EnsureCreated replace this)
         await db.Database.MigrateAsync();
-
-        // seed demo data (idempotent)
         await DataInitializer.SeedAsync(db);
     }
     catch (Exception ex)
     {
-        // Log and rethrow so the host fails to start when seeding fails
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
         throw;
     }
 }
 
-// Configure the HTTP request pipeline.
+// Pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Nếu chưa cấu hình HTTPS port/dev cert, giữ tắt để tránh lỗi redirect
+// app.UseHttpsRedirection();
 
-// Use CORS
 app.UseCors("AllowReactApp");
-
+app.UseAuthentication();     
 app.UseAuthorization();
 
 app.MapControllers();

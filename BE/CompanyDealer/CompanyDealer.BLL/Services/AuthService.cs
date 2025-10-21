@@ -157,5 +157,34 @@ namespace CompanyDealer.BLL.Services
                 RefreshToken = newRefreshToken
             };
         }
+
+        public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto request)
+        {
+            var user = await _userRepository.GetUserByUserIdAsync(userId);
+            if (user == null)
+                throw new ApiException.NotFoundException("User not found");
+
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.Password))
+                throw new ApiException.BadRequestException("Old password is incorrect");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
+
+        public async Task<bool> ForgotPasswordAsync(ForgotPasswordRequestDto request)
+        {
+            var user = await _userRepository.GetByUserNameWithRolesAsync(request.Username);
+            if (user == null)
+                throw new ApiException.NotFoundException("User not found");
+
+            if (user.Email != request.Email)
+                throw new ApiException.BadRequestException("Email does not match our records");
+            if (user.ContactPerson != request.ContactPerson)
+                throw new ApiException.BadRequestException("Contact person does not match our records");
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
     }
 }

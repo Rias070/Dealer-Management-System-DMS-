@@ -24,12 +24,20 @@ namespace CompanyDealer.DataInitalizer
             var companyStaffRole = new Role { Id = Guid.NewGuid(), RoleName = "CompanyStaff" };
             var dealerAdminRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerAdmin" };
             var dealerStaffRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerStaff" };
-            await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole);
+            var dealerManagerRole = new Role { Id = Guid.NewGuid(), RoleName = "DealerManager" };
+            var companyManagerRole = new Role { Id = Guid.NewGuid(), RoleName = "CompanyManager" };
+
+            await context.Set<Role>().AddRangeAsync(
+                companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole, dealerManagerRole, companyManagerRole
+            );
 
             // Seed Dealers
             var dealer1Id = Guid.NewGuid();
             var dealer2Id = Guid.NewGuid();
             var dealer3Id = Guid.NewGuid();
+            var staff1Id = Guid.NewGuid();
+            var staff2Id = Guid.NewGuid();
+            var staff3Id = Guid.NewGuid();
 
             var dealer1 = new Dealer
             {
@@ -57,6 +65,16 @@ namespace CompanyDealer.DataInitalizer
                 Name = "Demo Dealer 3",
                 Location = "Da Nang, Vietnam",
                 ContactInfo = "demo3@dealer.local | +84 912 333 444",
+                RegistrationDate = DateTime.UtcNow.AddYears(-3),
+                IsActive = true
+            };
+
+            var company = new Dealer
+            {
+                Id = dealer3Id,
+                Name = "company",
+                Location = "Da Nang, Vietnam",
+                ContactInfo = "company@.local | +84 912 333 444",
                 RegistrationDate = DateTime.UtcNow.AddYears(-3),
                 IsActive = true
             };
@@ -110,10 +128,42 @@ namespace CompanyDealer.DataInitalizer
                 Roles = new[] { companyAdminRole }
             };
 
-            // Add in proper order to satisfy FKs
-            await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole);
+            var companyStaff1 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Company Staff 1",
+                ContactPerson = "Admin Person 3",
+                Email = "asdf@dealer.local",
+                Phone = "+84 912 333 444",
+                Address = "789 Demo Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "staff1",
+                Password = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                DealerId = dealer3Id,
+                Roles = new[] { companyStaffRole }
+            };
+            var companyStaff2 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Company Staff 2",
+                ContactPerson = "Admin Person 2",
+                Email = "asdf@dealer.local",
+                Phone = "+84 912 333 444",
+                Address = "789 Demo Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "staff2",
+                Password = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                DealerId = dealer3Id,
+                Roles = new[] { companyStaffRole }
+            };
+
+            // Only add roles ONCE
+            // await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole, dealerManagerRole, companyManagerRole);
+
             await context.Dealers.AddRangeAsync(dealer1, dealer2, dealer3);
-            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3);
+            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3,companyStaff1,companyStaff2);
 
             await context.SaveChangesAsync();
         }

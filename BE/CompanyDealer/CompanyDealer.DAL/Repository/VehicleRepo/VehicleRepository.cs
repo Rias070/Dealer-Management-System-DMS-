@@ -72,5 +72,7 @@ namespace CompanyDealer.DAL.Repository.VehicleRepo
             await _context.SaveChangesAsync();
             return true;
         }
+
+
     }
 }

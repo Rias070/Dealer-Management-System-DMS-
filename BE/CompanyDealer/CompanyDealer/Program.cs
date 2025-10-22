@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json;
 using CompanyDealer.BLL.Utils;
+using CompanyDealer.DAL.Repository.RestockRepo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,6 +124,8 @@ builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<VehicleService>();
+builder.Services.AddScoped<IRestockRequestRepository, RestockRequestRepository>();
+builder.Services.AddScoped<RestockRequestService>();
 
 
 // Register repository interface

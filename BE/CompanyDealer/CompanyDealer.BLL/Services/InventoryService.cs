@@ -98,6 +98,10 @@ namespace CompanyDealer.BLL.Services
                 Inventory = deleted ? MapToDto(existing) : null
             };
         }
+        public async Task<List<Vehicle>> GetVehicleInInventory(Guid dealerId)
+        {
+            return await _inventoryRepository.GetVehicleInInventory(dealerId);
+        }
 
         private static InventoryDto MapToDto(Inventory i)
         {

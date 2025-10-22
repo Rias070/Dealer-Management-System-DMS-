@@ -3,6 +3,7 @@ using System;
 using CompanyDealer.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251022015419_addRequestRestock")]
+    partial class addRequestRestock
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -504,26 +507,6 @@ namespace CompanyDealer.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ApprovedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ApprovedByName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CreatedByName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("CustomerContact")
                         .IsRequired()
                         .HasColumnType("text");
@@ -538,16 +521,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime?>("RejectedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RejectionReason")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("TestDate")
                         .HasColumnType("timestamp with time zone");

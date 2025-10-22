@@ -35,9 +35,6 @@ namespace CompanyDealer.DataInitalizer
             var dealer1Id = Guid.NewGuid();
             var dealer2Id = Guid.NewGuid();
             var dealer3Id = Guid.NewGuid();
-            var staff1Id = Guid.NewGuid();
-            var staff2Id = Guid.NewGuid();
-            var staff3Id = Guid.NewGuid();
 
             var dealer1 = new Dealer
             {
@@ -69,15 +66,100 @@ namespace CompanyDealer.DataInitalizer
                 IsActive = true
             };
 
-            var company = new Dealer
+            // Seed Categories
+            var sedanCategory = new Category { Id = Guid.NewGuid(), Name = "Sedan", Description = "Sedan cars" };
+            var suvCategory = new Category { Id = Guid.NewGuid(), Name = "SUV", Description = "SUV cars" };
+            await context.Categories.AddRangeAsync(sedanCategory, suvCategory);
+
+            // Seed Vehicles (do NOT assign InventoryId directly)
+            var vehicle1 = new Vehicle
             {
-                Id = dealer3Id,
-                Name = "company",
-                Location = "Da Nang, Vietnam",
-                ContactInfo = "company@.local | +84 912 333 444",
-                RegistrationDate = DateTime.UtcNow.AddYears(-3),
-                IsActive = true
+                Id = Guid.NewGuid(),
+                Make = "Toyota",
+                Model = "Camry",
+                Year = 2022,
+                VIN = "VIN001",
+                Color = "Black",
+                Price = 35000,
+                Description = "Comfortable sedan",
+                IsAvailable = true,
+                CategoryId = sedanCategory.Id
             };
+            var vehicle2 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "Honda",
+                Model = "CR-V",
+                Year = 2023,
+                VIN = "VIN002",
+                Color = "White",
+                Price = 40000,
+                Description = "Spacious SUV",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            var vehicle3 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "Ford",
+                Model = "Focus",
+                Year = 2021,
+                VIN = "VIN003",
+                Color = "Blue",
+                Price = 25000,
+                Description = "Economical sedan",
+                IsAvailable = true,
+                CategoryId = sedanCategory.Id
+            };
+            await context.Vehicles.AddRangeAsync(vehicle1, vehicle2, vehicle3);
+
+            // Seed Inventories
+            var inventory1 = new Inventory
+            {
+                Id = Guid.NewGuid(),
+                DealerId = dealer1Id,
+                LastUpdated = DateTime.UtcNow
+            };
+            var inventory2 = new Inventory
+            {
+                Id = Guid.NewGuid(),
+                DealerId = dealer2Id,
+                LastUpdated = DateTime.UtcNow
+            };
+            var inventory3 = new Inventory
+            {
+                Id = Guid.NewGuid(),
+                DealerId = dealer3Id,
+                LastUpdated = DateTime.UtcNow
+            };
+            await context.Inventories.AddRangeAsync(inventory1, inventory2, inventory3);
+
+            // Link Vehicles to Inventories via InventoryVehicle
+            var inventoryVehicle1 = new InventoryVehicle
+            {
+                InventoryId = inventory1.Id,
+                VehicleId = vehicle1.Id,
+                Quantity = 5
+            };
+            var inventoryVehicle2 = new InventoryVehicle
+            {
+                InventoryId = inventory1.Id,
+                VehicleId = vehicle2.Id,
+                Quantity = 2
+            };
+            var inventoryVehicle3 = new InventoryVehicle
+            {
+                InventoryId = inventory2.Id,
+                VehicleId = vehicle3.Id,
+                Quantity = 3
+            };
+            var inventoryVehicle4 = new InventoryVehicle
+            {
+                InventoryId = inventory3.Id,
+                VehicleId = vehicle1.Id,
+                Quantity = 1
+            };
+            await context.InventoryVehicles.AddRangeAsync(inventoryVehicle1, inventoryVehicle2, inventoryVehicle3, inventoryVehicle4);
 
             // Accounts for each dealer
             var adminAccount1 = new Account
@@ -159,11 +241,8 @@ namespace CompanyDealer.DataInitalizer
                 Roles = new[] { companyStaffRole }
             };
 
-            // Only add roles ONCE
-            // await context.Set<Role>().AddRangeAsync(companyAdminRole, companyStaffRole, dealerAdminRole, dealerStaffRole, dealerManagerRole, companyManagerRole);
-
             await context.Dealers.AddRangeAsync(dealer1, dealer2, dealer3);
-            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3,companyStaff1,companyStaff2);
+            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3, companyStaff1, companyStaff2);
 
             await context.SaveChangesAsync();
         }

@@ -33,5 +33,28 @@ namespace CompanyDealer.BLL.ExceptionHandle
                 Data = errors
             };
         }
+
+        // Overload for ErrorResponse (for backward compatibility)
+        public static ApiResponse<object> ErrorResponse(string message)
+        {
+            return new ApiResponse<object>
+            {
+                Success = false,
+                ErrorCode = "ERROR",
+                Message = message,
+                Data = null!
+            };
+        }
+
+        public static ApiResponse<object> ErrorResponse(string message, object data)
+        {
+            return new ApiResponse<object>
+            {
+                Success = false,
+                ErrorCode = "ERROR",
+                Message = message,
+                Data = data
+            };
+        }
     }
 }

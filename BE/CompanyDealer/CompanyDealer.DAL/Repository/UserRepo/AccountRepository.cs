@@ -33,7 +33,7 @@ namespace CompanyDealer.DAL.Repository.UserRepo
                 .FirstOrDefaultAsync(u => u.Username == userName);
         }
 
-        public async Task AssignRoleToUserAsync(Guid userId, string roleName)
+        public async Task AssignRoleToUserAsync(Guid userId, Guid roleId)
         {
             var user = await _context.Set<Account>()
                 .Include(u => u.Roles)
@@ -43,10 +43,10 @@ namespace CompanyDealer.DAL.Repository.UserRepo
                 throw new ArgumentException($"User with ID {userId} not found");
 
             var role = await _context.Set<Role>()
-                .FirstOrDefaultAsync(r => r.RoleName == roleName && !r.IsDeleted);
+                .FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted);
 
             if (role == null)
-                throw new ArgumentException($"Role '{roleName}' not found");
+                throw new ArgumentException($"Role does not exist");
 
             if (user.Roles == null)
                 user.Roles = new List<Role>();

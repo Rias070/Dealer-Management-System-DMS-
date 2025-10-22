@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using CompanyDealer.BLL.DTOs;
+using CompanyDealer.BLL.DTOs.VehicleDTOs;
+using CompanyDealer.BLL.ExceptionHandle;
 using CompanyDealer.BLL.Services;
-using CompanyDealer.DAL.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CompanyDealer.Controllers
 {
@@ -11,53 +13,125 @@ namespace CompanyDealer.Controllers
     [Route("api/[controller]")]
     public class VehiclesController : ControllerBase
     {
-        private readonly VehicleService _service;
-        private readonly ILogger<VehiclesController> _logger;
+        private readonly VehicleService _vehicleService;
 
-        public VehiclesController(VehicleService service, ILogger<VehiclesController> logger)
+        public VehiclesController(VehicleService vehicleService)
         {
-            _service = service;
-            _logger = logger;
+            _vehicleService = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
         }
 
+        // GET: api/vehicles
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var vehicles = await _service.GetAllAsync();
+            var vehicles = await _vehicleService.GetAllAsync();
             return Ok(vehicles);
         }
 
+        // GET: api/vehicles/{id}
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
-            var vehicle = await _service.GetByIdAsync(id);
-            if (vehicle == null) return NotFound();
-            return Ok(vehicle);
+            if (id == Guid.Empty)
+                return BadRequest();
+
+            try
+            {
+                var result = await _vehicleService.GetByIdAsync(id);
+                if (result == null || result.Vehicle == null)
+                    return NotFound();
+
+                return Ok(result.Vehicle);
+            }
+            catch (ApiException.NotFoundException)
+            {
+                return NotFound();
+            }
         }
 
+        // POST: api/vehicles
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Vehicle vehicle)
+        public async Task<ActionResult<VehicleDto>> Create([FromBody] VehicleCreateUpdateDto request)
         {
-            if (vehicle == null) return BadRequest();
-            var created = await _service.CreateAsync(vehicle);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            if (request == null)
+                return BadRequest();
+
+            var svcRequest = new VehicleRequestDto
+            {
+                // Id left unset for create; service should generate new Id
+                Make = request.Make,
+                Model = request.Model,
+                Year = request.Year,
+                VIN = request.VIN,
+                Color = request.Color,
+                Price = request.Price,
+                Description = request.Description,
+                IsAvailable = request.IsAvailable,
+                CategoryId = request.CategoryId
+            };
+
+            var result = await _vehicleService.CreateAsync(svcRequest);
+            if (result == null || !result.Success)
+                return BadRequest(result?.Message);
+
+            // return created resource
+            return CreatedAtAction(nameof(GetById), new { id = result.VehicleId }, result.Vehicle);
         }
 
+        // PUT: api/vehicles/{id}
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Vehicle vehicle)
+        public async Task<ActionResult<VehicleDto>> Update([FromRoute] Guid id, [FromBody] VehicleCreateUpdateDto request)
         {
-            if (vehicle == null || id != vehicle.Id) return BadRequest();
-            var updated = await _service.UpdateAsync(vehicle);
-            if (updated == null) return NotFound();
-            return Ok(updated);
+            if (request == null || id == Guid.Empty)
+                return BadRequest();
+
+            var svcRequest = new VehicleRequestDto
+            {
+                Id = id,
+                Make = request.Make,
+                Model = request.Model,
+                Year = request.Year,
+                VIN = request.VIN,
+                Color = request.Color,
+                Price = request.Price,
+                Description = request.Description,
+                IsAvailable = request.IsAvailable,
+                CategoryId = request.CategoryId
+            };
+
+            try
+            {
+                var result = await _vehicleService.UpdateAsync(svcRequest);
+                if (result == null || !result.Success)
+                    return NotFound();
+
+                return Ok(result.Vehicle);
+            }
+            catch (ApiException.NotFoundException)
+            {
+                return NotFound();
+            }
         }
 
+        // DELETE: api/vehicles/{id}
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var deleted = await _service.DeleteAsync(id);
-            if (!deleted) return NotFound();
-            return NoContent();
+            if (id == Guid.Empty)
+                return BadRequest();
+
+            try
+            {
+                var result = await _vehicleService.DeleteAsync(id);
+                if (result == null || !result.Success)
+                    return NotFound();
+
+                return NoContent();
+            }
+            catch (ApiException.NotFoundException)
+            {
+                return NotFound();
+            }
         }
     }
 }

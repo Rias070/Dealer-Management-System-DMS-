@@ -1,7 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using CompanyDealer.BLL.DTOs;
+using CompanyDealer.BLL.DTOs.VehicleDTOs;
+using CompanyDealer.BLL.ExceptionHandle;
 using CompanyDealer.DAL.Models;
 using CompanyDealer.DAL.Repository.VehicleRepo;
 
@@ -9,56 +12,125 @@ namespace CompanyDealer.BLL.Services
 {
     public class VehicleService
     {
-        private readonly VehicleRepository _repository;
-        private readonly ILogger<VehicleService> _logger;
+        private readonly IVehicleRepository _vehicleRepository;
 
-        public VehicleService(VehicleRepository repository, ILogger<VehicleService> logger)
+        public VehicleService(IVehicleRepository vehicleRepository)
         {
-            _repository = repository;
-            _logger = logger;
+            _vehicleRepository = vehicleRepository;
         }
 
-        public async Task<Vehicle> CreateAsync(Vehicle vehicle)
+        public async Task<List<VehicleDto>> GetAllAsync()
         {
-            if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
-            if (vehicle.Id == Guid.Empty) vehicle.Id = Guid.NewGuid();
-
-            // Business defaults
-            vehicle.IsAvailable = vehicle.IsAvailable;
-
-            try
-            {
-                return await _repository.CreateAsync(vehicle);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating vehicle");
-                throw;
-            }
+            var entities = await _vehicleRepository.GetAllAsync();
+            return entities.Select(MapToDto).ToList();
         }
 
-        public Task<Vehicle?> GetByIdAsync(Guid id)
-            => _repository.GetByIdAsync(id);
-
-        public Task<List<Vehicle>> GetAllAsync()
-            => _repository.GetAllAsync();
-
-        public async Task<Vehicle?> UpdateAsync(Vehicle vehicle)
+        public async Task<VehicleResponseDto> GetByIdAsync(Guid id)
         {
-            if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
+            var entity = await _vehicleRepository.GetByIdAsync(id);
+            if (entity == null)
+                throw new ApiException.NotFoundException($"Vehicle with id '{id}' not found");
 
-            try
+            return new VehicleResponseDto
             {
-                return await _repository.UpdateAsync(vehicle);
+                Success = true,
+                Message = "Vehicle retrieved",
+                VehicleId = entity.Id,
+                Vehicle = MapToDto(entity)
+            };
             }
-            catch (Exception ex)
+
+        public async Task<VehicleResponseDto> CreateAsync(VehicleRequestDto request)
             {
-                _logger.LogError(ex, "Error updating vehicle {VehicleId}", vehicle.Id);
-                throw;
+            var vehicle = new Vehicle
+            {
+                Id = request.Id ?? Guid.NewGuid(),
+                Make = request.Make,
+                Model = request.Model,
+                Year = request.Year,
+                VIN = request.VIN,
+                Color = request.Color,
+                Price = request.Price,
+                Description = request.Description,
+                IsAvailable = request.IsAvailable,
+                CategoryId = request.CategoryId
+            };
+
+            var created = await _vehicleRepository.CreateAsync(vehicle);
+
+            return new VehicleResponseDto
+            {
+                Success = true,
+                Message = "Vehicle created successfully",
+                VehicleId = created.Id,
+                Vehicle = MapToDto(created)
+            };
             }
+
+        public async Task<VehicleResponseDto> UpdateAsync(VehicleRequestDto request)
+        {
+            if (!request.Id.HasValue)
+                throw new ApiException.BadRequestException("Vehicle Id is required for update");
+
+            var existing = await _vehicleRepository.GetByIdAsync(request.Id.Value);
+            if (existing == null)
+                throw new ApiException.NotFoundException($"Vehicle with id '{request.Id}' not found");
+
+            existing.Make = request.Make;
+            existing.Model = request.Model;
+            existing.Year = request.Year;
+            existing.VIN = request.VIN;
+            existing.Color = request.Color;
+            existing.Price = request.Price;
+            existing.Description = request.Description;
+            existing.IsAvailable = request.IsAvailable;
+            existing.CategoryId = request.CategoryId;
+
+            var updated = await _vehicleRepository.UpdateAsync(existing);
+
+            return new VehicleResponseDto
+            {
+                Success = true,
+                Message = "Vehicle updated successfully",
+                VehicleId = updated?.Id ?? existing.Id,
+                Vehicle = MapToDto(updated ?? existing)
+            };
         }
 
-        public Task<bool> DeleteAsync(Guid id)
-            => _repository.DeleteAsync(id);
+        public async Task<VehicleResponseDto> DeleteAsync(Guid id)
+        {
+            var existing = await _vehicleRepository.GetByIdAsync(id);
+            if (existing == null)
+                throw new ApiException.NotFoundException($"Vehicle with id '{id}' not found");
+
+            var deleted = await _vehicleRepository.DeleteAsync(id);
+
+            return new VehicleResponseDto
+        {
+                Success = deleted,
+                Message = deleted ? "Vehicle deleted successfully" : "Vehicle not deleted",
+                VehicleId = id,
+                Vehicle = deleted ? MapToDto(existing) : null
+            };
+        }
+
+        private static VehicleDto MapToDto(Vehicle v)
+        {
+            if (v == null) return null;
+
+            return new VehicleDto
+            {
+                Id = v.Id,
+                Make = v.Make,
+                Model = v.Model,
+                Year = v.Year,
+                VIN = v.VIN,
+                Color = v.Color,
+                Price = v.Price,
+                Description = v.Description,
+                IsAvailable = v.IsAvailable,
+                CategoryId = v.CategoryId
+            };
+        }
     }
 }

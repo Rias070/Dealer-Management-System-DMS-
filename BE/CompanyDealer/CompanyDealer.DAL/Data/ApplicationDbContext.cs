@@ -29,7 +29,8 @@ namespace CompanyDealer.DAL.Data
         public DbSet<Promotion> Promotions { get; set; } = null!;
         public DbSet<Bill> Bills { get; set; } = null!;
         public DbSet<SaleContract> SaleContracts { get; set; } = null!;
-        public DbSet<InventoryVehicle> InventoryVehicles { get; set; } = null!; // ✅ new
+        public DbSet<InventoryVehicle> InventoryVehicles { get; set; } = null!; 
+        public DbSet<RestockRequest> RestockRequests { get; set; } = null!; 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -171,6 +172,25 @@ namespace CompanyDealer.DAL.Data
                 .WithMany() // or .WithMany(a => a.Tokens) if you have a collection
                 .HasForeignKey(t => t.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // RestockRequest relationships
+            modelBuilder.Entity<RestockRequest>()
+                .HasOne(r => r.Account)
+                .WithMany()
+                .HasForeignKey(r => r.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RestockRequest>()
+                .HasOne(r => r.Dealer)
+                .WithMany()
+                .HasForeignKey(r => r.DealerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RestockRequest>()
+                .HasOne(r => r.Vehicle)
+                .WithMany()
+                .HasForeignKey(r => r.VehicleId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

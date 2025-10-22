@@ -12,5 +12,7 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
         Task<Inventory> CreateAsync(Inventory entity);
         Task<Inventory?> UpdateAsync(Inventory entity);
         Task<bool> DeleteAsync(Guid id);
+    
+        Task<List<Vehicle>> GetVehicleInInventory(Guid dealerId);
     }
 }

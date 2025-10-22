@@ -62,5 +62,22 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
             await _db.SaveChangesAsync();
             return true;
         }
+
+        
+
+        public async Task<List<Vehicle>> GetVehicleInInventory(Guid dealerId)
+        {
+            var vehicles = await _db.Inventories
+                .Include(i => i.InventoryVehicles)
+                .ThenInclude(iv => iv.Vehicle)
+                .Where(i => i.DealerId == dealerId)
+                .SelectMany(i => i.InventoryVehicles.Select(iv => iv.Vehicle))
+                .Distinct()
+                .ToListAsync();
+
+            return vehicles;
+        }
+
+        
     }
 }

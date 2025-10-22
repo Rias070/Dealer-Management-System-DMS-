@@ -51,5 +51,12 @@ namespace CompanyDealer.Controllers
             var res = await _service.DeleteAsync(id);
             return Ok(res);
         }
+
+        [HttpGet("dealer/{dealerId:guid}/vehicles")]
+        public async Task<IActionResult> GetVehiclesByDealerId(Guid dealerId)
+        {
+            var vehicles = await _service.GetVehicleInInventory(dealerId);
+            return Ok(vehicles);
+        }
     }
 }

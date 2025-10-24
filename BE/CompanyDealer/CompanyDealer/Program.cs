@@ -131,6 +131,9 @@ builder.Services.AddScoped<RestockRequestService>();
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.DealerRepo.IDealerRepository, CompanyDealer.DAL.Repository.DealerRepo.DealerRepository>();
 builder.Services.AddScoped<DealerService>();
 
+// TestDrive services
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.TestDriveRepo.ITestDriveRepository, CompanyDealer.DAL.Repository.TestDriveRepo.TestDriveRepository>();
+builder.Services.AddScoped<ITestDriveService, TestDriveService>();
 
 // Register repository interface
 //

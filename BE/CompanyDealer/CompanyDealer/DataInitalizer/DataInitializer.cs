@@ -241,8 +241,90 @@ namespace CompanyDealer.DataInitalizer
                 Roles = new[] { companyStaffRole }
             };
 
+            var dealerAdmin1 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Admin 1",
+                ContactPerson = "Dealer Admin Person 1",
+                Email = "dealeradmin1@dealer.local",
+                Phone = "+84 912 555 666",
+                Address = "111 Dealer Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealeradmin1",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                DealerId = dealer1Id,
+                Roles = new[] { dealerAdminRole }
+            };
+
+            var dealerAdmin2 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Admin 2",
+                ContactPerson = "Dealer Admin Person 2",
+                Email = "dealeradmin2@dealer.local",
+                Phone = "+84 912 777 888",
+                Address = "222 Dealer Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealeradmin2",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                DealerId = dealer2Id,
+                Roles = new[] { dealerAdminRole }
+            };
+
+            // DealerStaff accounts
+            var dealerStaff1 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Staff 1",
+                ContactPerson = "Dealer Staff Person 1",
+                Email = "dealerstaff1@dealer.local",
+                Phone = "+84 912 999 000",
+                Address = "333 Dealer Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealerstaff1",
+                Password = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                DealerId = dealer1Id,
+                Roles = new[] { dealerStaffRole }
+            };
+
+            var dealerStaff2 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Staff 2",
+                ContactPerson = "Dealer Staff Person 2",
+                Email = "dealerstaff2@dealer.local",
+                Phone = "+84 912 111 222",
+                Address = "444 Dealer Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealerstaff2",
+                Password = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                DealerId = dealer2Id,
+                Roles = new[] { dealerStaffRole }
+            };
+
+            var dealerStaff3 = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Staff 3",
+                ContactPerson = "Dealer Staff Person 3",
+                Email = "dealerstaff3@dealer.local",
+                Phone = "+84 912 333 444",
+                Address = "555 Dealer Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealerstaff3",
+                Password = BCrypt.Net.BCrypt.HashPassword("staff123"),
+                DealerId = dealer3Id,
+                Roles = new[] { dealerStaffRole }
+            };
+
             await context.Dealers.AddRangeAsync(dealer1, dealer2, dealer3);
-            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3, companyStaff1, companyStaff2);
+            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3, companyStaff1, companyStaff2, dealerAdmin1, dealerAdmin2,
+    dealerStaff1, dealerStaff2, dealerStaff3);
 
             await context.SaveChangesAsync();
         }

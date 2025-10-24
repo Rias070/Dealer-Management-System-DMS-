@@ -65,7 +65,8 @@ public class RestockRequestService
             RequestDate = DateTime.UtcNow,
             Status = "Pending",
             AcceptenceLevel = "Dealer",
-            Description = dto.Description
+            Description = dto.Description,
+            AcceptedBy = string.Empty,
         };
         await _repo.CreateAsync(entity);
         return await GetByIdAsync(entity.id);

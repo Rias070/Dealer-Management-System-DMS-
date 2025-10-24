@@ -12,7 +12,7 @@ namespace CompanyDealer.BLL.DTOs.AuthDTOs
         public string Email { get; set; }            // Email
         public string Address { get; set; }          // Địa chỉ
         public DateTime? Dob { get; set; }           // Ngày sinh (có thể null)\
-        public string DealerName { get; set; }     // Tên đại lý
-        public string Role { get; set; } = "CompanyStaff";   // Vai trò (mặc định là User)
+        public Guid DealerId { get; set; }     // Tên đại lý
+        public Guid RoleId { get; set; }    // Vai trò 
     }
 }

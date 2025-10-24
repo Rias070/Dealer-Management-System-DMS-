@@ -127,6 +127,10 @@ builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<IRestockRequestRepository, RestockRequestRepository>();
 builder.Services.AddScoped<RestockRequestService>();
 
+// Dealer services
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.DealerRepo.IDealerRepository, CompanyDealer.DAL.Repository.DealerRepo.DealerRepository>();
+builder.Services.AddScoped<DealerService>();
+
 
 // Register repository interface
 //

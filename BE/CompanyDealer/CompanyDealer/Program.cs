@@ -130,6 +130,7 @@ builder.Services.AddScoped<RestockRequestService>();
 // Dealer services
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.DealerRepo.IDealerRepository, CompanyDealer.DAL.Repository.DealerRepo.DealerRepository>();
 builder.Services.AddScoped<DealerService>();
+builder.Services.AddScoped<CompanyDealer.BLL.Services.IRoleService, CompanyDealer.BLL.Services.RoleService>();
 
 // TestDrive services
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.TestDriveRepo.ITestDriveRepository, CompanyDealer.DAL.Repository.TestDriveRepo.TestDriveRepository>();

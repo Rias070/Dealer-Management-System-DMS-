@@ -97,7 +97,7 @@ public class RestockRequestService
         if (entity == null || entity.Status != "Pending" || entity.AcceptenceLevel != "Dealer")
             return false;
         entity.Status = "Pending";
-        entity.AcceptenceLevel = "Company";
+        entity.AcceptenceLevel = "CompanyStaff";
         entity.AcceptedBy = managerAccountId.ToString();
         entity.ResponseDate = DateTime.UtcNow;
         await _repo.UpdateAsync(entity);
@@ -107,6 +107,24 @@ public class RestockRequestService
     public async Task<List<RestockRequestDto>> GetRequestsByDealerManager(Guid dealerId)
     {
         var requests = await _repo.GetByDealerIdAsync(dealerId);
+        return requests.Select(r => new RestockRequestDto
+        {
+            Id = r.id,
+            AccountId = r.AccountId,
+            DealerId = r.DealerId,
+            VehicleId = r.VehicleId,
+            Quantity = r.Quantity,
+            RequestDate = r.RequestDate,
+            ResponseDate = r.ResponseDate,
+            AcceptenceLevel = r.AcceptenceLevel,
+            AcceptedBy = r.AcceptedBy,
+            Status = r.Status,
+            Description = r.Description
+        }).ToList();
+    }
+    public async Task<List<RestockRequestDto>> GetRestockRequestForCompany()
+    {
+        var requests = await _repo.GetRequestsForAcceptenceLevelAsync("CompanyStaff");
         return requests.Select(r => new RestockRequestDto
         {
             Id = r.id,

@@ -270,7 +270,7 @@ namespace CompanyDealer.DataInitalizer
                 Username = "dealeradmin2",
                 Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 DealerId = dealer2Id,
-                Roles = new[] { dealerAdminRole }
+                Roles = new[] { dealerManagerRole }
             };
 
             // DealerStaff accounts

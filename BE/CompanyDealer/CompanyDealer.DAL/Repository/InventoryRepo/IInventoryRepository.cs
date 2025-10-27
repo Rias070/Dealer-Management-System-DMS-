@@ -15,6 +15,6 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
     
         Task<List<Vehicle>> GetVehicleInInventory(Guid dealerId);
         Task<List<object>> GetVehicleWithQuantityByDealer(Guid dealerId);
-        Task<bool> ReduceQuantityIfEnough(Guid vehicleId, Guid dealerId, int quantity);
+        Task<bool> ReduceQuantityIfEnough(Guid vehicleId, int quantity);
     }
 }

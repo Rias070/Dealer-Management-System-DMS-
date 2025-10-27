@@ -131,7 +131,7 @@ public class RestockRequestService
         var entity = await _repo.GetByIdAsync(id);
         if (entity == null || entity.Status != "Pending" || entity.AcceptenceLevel != "Company")
             return false;
-        bool result = await _inventoryRepo.ReduceQuantityIfEnough(entity.VehicleId, entity.DealerId, entity.Quantity);
+        bool result = await _inventoryRepo.ReduceQuantityIfEnough(entity.VehicleId, entity.Quantity);
         if (!result)
             return false;
         entity.Status = "Accept";

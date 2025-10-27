@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using CompanyDealer.DAL.Migrations;
 
 namespace CompanyDealer.Controllers
 {
@@ -15,11 +16,13 @@ namespace CompanyDealer.Controllers
     {
         private readonly RestockRequestService _service;
         private readonly AuthService _authService;
+        private readonly VehicleService _vehicleService;
 
-        public RestockRequestController(RestockRequestService service, AuthService authService)
+        public RestockRequestController(RestockRequestService service, AuthService authService, VehicleService vehicleService)
         {
             _service = service;
             _authService = authService;
+            _vehicleService = vehicleService;
         }
 
         
@@ -47,14 +50,17 @@ namespace CompanyDealer.Controllers
         {
             var userId = GetUserIdFromToken();
             var dealerId = await _authService.GetDealerIdByUserIdAsync(userId);
+            var vehicle = await _vehicleService.GetByIdAsync(requestDto.VehicleId);
+            var vehicleName = vehicle.Vehicle.Model; 
             var dto = new CreateRestockRequestDto
             {
                 AccountId = userId,
                 DealerId = dealerId.Value,
                 VehicleId = requestDto.VehicleId,
+                VehicleName = vehicleName,
                 Quantity = requestDto.Quantity,
                 Description = requestDto.Description
-            };
+            }; 
             var res = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = res.Id }, ApiResponse<object>.SuccessResponse(res, "Created restock request"));
         }

@@ -22,12 +22,15 @@ namespace CompanyDealer.Controllers
             _authService = authService;
         }
 
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var list = await _service.GetAllAsync();
             return Ok(ApiResponse<object>.SuccessResponse(list, "Fetched all restock requests"));
         }
+
+        
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
@@ -74,8 +77,8 @@ namespace CompanyDealer.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(null, "Deleted restock request"));
         }
 
-        // DealerManager: Accept and escalate to company
-        [Authorize(Roles = "DealerManager")]
+        // DealerManager, DealerAdmin: Accept and escalate to company or reject
+        [Authorize(Roles = "DealerManager,DealerAdmin")]
         [HttpPost("{id:guid}/accept")]
         public async Task<IActionResult> AcceptAndEscalate(Guid id)
         {
@@ -86,8 +89,33 @@ namespace CompanyDealer.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(null, "Request escalated to company."));
         }
 
+        [Authorize(Roles = "DealerManager,DealerAdmin")]
+        [HttpPost("{id:guid}/reject")]
+        public async Task<IActionResult> Reject(Guid id, string rejectReason)
+        {
+            var userId = GetUserIdFromToken();
+            var success = await _service.RejectAsync(id, userId,rejectReason);
+            if (!success)
+                return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", "Cannot reject this request."));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Request Rejected."));
+        }
+
+        // DealerManager, DealerAdmin: Accept or reject restock from company
+        [Authorize(Roles = "CompanyAdmin,CompanyManager")]
+        [HttpPost("{id:guid}/company/accept")]
+        public async Task<IActionResult> CompanyAccept(Guid id)
+        {
+            var userId = GetUserIdFromToken();
+            var success = await _service.CompanyAcceptAsync(id, userId);
+            if (!success)
+                return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", "Cannot accept this request."));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Request accepted from company."));
+        }
+
+
+
         // DealerManager: View all restock requests for their dealer (dealerId from user)
-        [Authorize(Roles = "DealerManager")]
+        [Authorize(Roles = "DealerManager,DealerAdmin")]
         [HttpGet("dealer/requests")]
         public async Task<IActionResult> GetRequestsByDealerManager()
         {
@@ -98,6 +126,18 @@ namespace CompanyDealer.Controllers
             var requests = await _service.GetRequestsByDealerManager(dealerId.Value);
             return Ok(ApiResponse<object>.SuccessResponse(requests, "Fetched dealer restock requests"));
         }
+
+        // CompanyManager,CompanyAdmin: View all restock requests for company
+        [Authorize(Roles = "CompanyManager,CompanyAdmin")]
+        [HttpPost("requests")]
+        public async Task<IActionResult> GetRequestForCompany()
+        {
+            var requests = await _service.GetRestockRequestFor("Company");
+            return Ok(ApiResponse<Object>.SuccessResponse(requests, "Fetched restock requests"));
+        }
+
+
+
 
         private Guid GetUserIdFromToken()
         {
@@ -110,12 +150,12 @@ namespace CompanyDealer.Controllers
         }
 
         //CompanyStaff: View all restock requests for company staff
-        [Authorize(Roles = "CompanyStaff")]
-        [HttpGet("/companystaff")]
-        public async Task<IActionResult> GetRequestsForCompanyStaff()
-        {
-            var requests = await _service.GetRestockRequestForCompany();
-            return Ok(ApiResponse<object>.SuccessResponse(requests, "Fetched restock requests for company staff"));
-        }
+        //[Authorize(Roles = "CompanyStaff")]
+        //[HttpGet("/companystaff")]
+        //public async Task<IActionResult> GetRequestsForCompanyStaff()
+        //{
+        //    var requests = await _service.GetRestockRequestForCompany();
+        //    return Ok(ApiResponse<object>.SuccessResponse(requests, "Fetched restock requests for company staff"));
+        //}
     }
 }

@@ -13,5 +13,6 @@ namespace CompanyDealer.BLL.DTOs.VehicleDTOs
         public Guid VehicleId { get; set; }
 
         public VehicleDto Vehicle { get; set; }
+        public int Quantity { get; set; }
     }
 }

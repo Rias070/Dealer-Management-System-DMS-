@@ -36,16 +36,19 @@ namespace CompanyDealer.DataInitalizer
             var dealer2Id = Guid.NewGuid();
             var dealer3Id = Guid.NewGuid();
 
+            // đại diện cho company
             var dealer1 = new Dealer
             {
                 Id = dealer1Id,
-                Name = "Demo Dealer 1",
+                Name = "Company",
                 Location = "Hanoi, Vietnam",
-                ContactInfo = "demo1@dealer.local | +84 912 345 678",
+                ContactInfo = "CompanyGmail@.local | +84 912 345 678",
                 RegistrationDate = DateTime.UtcNow.AddYears(-1),
                 IsActive = true
             };
 
+
+            // các dealer
             var dealer2 = new Dealer
             {
                 Id = dealer2Id,
@@ -66,52 +69,151 @@ namespace CompanyDealer.DataInitalizer
                 IsActive = true
             };
 
-            // Seed Categories
+            // Seed Categories (add more if needed)
             var sedanCategory = new Category { Id = Guid.NewGuid(), Name = "Sedan", Description = "Sedan cars" };
             var suvCategory = new Category { Id = Guid.NewGuid(), Name = "SUV", Description = "SUV cars" };
-            await context.Categories.AddRangeAsync(sedanCategory, suvCategory);
+            var hatchbackCategory = new Category { Id = Guid.NewGuid(), Name = "Hatchback", Description = "Hatchback cars" };
+            var luxuryCategory = new Category { Id = Guid.NewGuid(), Name = "Luxury", Description = "Luxury cars" };
+            await context.Categories.AddRangeAsync(sedanCategory, suvCategory, hatchbackCategory, luxuryCategory);
 
-            // Seed Vehicles (do NOT assign InventoryId directly)
-            var vehicle1 = new Vehicle
+            // Seed Vehicles (VinFast electric and gasoline)
+            var vinfastE34 = new Vehicle
             {
                 Id = Guid.NewGuid(),
-                Make = "Toyota",
-                Model = "Camry",
-                Year = 2022,
-                VIN = "VIN001",
-                Color = "Black",
-                Price = 35000,
-                Description = "Comfortable sedan",
-                IsAvailable = true,
-                CategoryId = sedanCategory.Id
-            };
-            var vehicle2 = new Vehicle
-            {
-                Id = Guid.NewGuid(),
-                Make = "Honda",
-                Model = "CR-V",
+                Make = "VinFast",
+                Model = "VF e34",
                 Year = 2023,
-                VIN = "VIN002",
+                VIN = "VF-E34-001",
                 Color = "White",
-                Price = 40000,
-                Description = "Spacious SUV",
+                Price = 690000000,
+                Description = "VinFast VF e34 - Electric SUV",
                 IsAvailable = true,
                 CategoryId = suvCategory.Id
             };
-            var vehicle3 = new Vehicle
+            var vinfastVf5 = new Vehicle
             {
                 Id = Guid.NewGuid(),
-                Make = "Ford",
-                Model = "Focus",
-                Year = 2021,
-                VIN = "VIN003",
+                Make = "VinFast",
+                Model = "VF 5",
+                Year = 2023,
+                VIN = "VF-5-001",
+                Color = "Yellow",
+                Price = 458000000,
+                Description = "VinFast VF 5 - Electric Crossover",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            var vinfastVf6 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "VF 6",
+                Year = 2023,
+                VIN = "VF-6-001",
                 Color = "Blue",
-                Price = 25000,
-                Description = "Economical sedan",
+                Price = 595000000,
+                Description = "VinFast VF 6 - Electric SUV",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            var vinfastVf7 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "VF 7",
+                Year = 2023,
+                VIN = "VF-7-001",
+                Color = "Red",
+                Price = 800000000,
+                Description = "VinFast VF 7 - Electric SUV",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            var vinfastVf8 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "VF 8",
+                Year = 2023,
+                VIN = "VF-8-001",
+                Color = "Silver",
+                Price = 1090000000,
+                Description = "VinFast VF 8 - Electric SUV",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            var vinfastVf9 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "VF 9",
+                Year = 2023,
+                VIN = "VF-9-001",
+                Color = "Black",
+                Price = 1500000000,
+                Description = "VinFast VF 9 - Electric SUV",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            // Gasoline models
+            var vinfastLuxA20 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "Lux A2.0",
+                Year = 2021,
+                VIN = "VF-LUXA20-001",
+                Color = "Gray",
+                Price = 1100000000,
+                Description = "VinFast Lux A2.0 - Gasoline Sedan",
                 IsAvailable = true,
                 CategoryId = sedanCategory.Id
             };
-            await context.Vehicles.AddRangeAsync(vehicle1, vehicle2, vehicle3);
+            var vinfastLuxSA20 = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "Lux SA2.0",
+                Year = 2021,
+                VIN = "VF-LUXSA20-001",
+                Color = "White",
+                Price = 1500000000,
+                Description = "VinFast Lux SA2.0 - Gasoline SUV",
+                IsAvailable = true,
+                CategoryId = suvCategory.Id
+            };
+            var vinfastFadil = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "Fadil",
+                Year = 2021,
+                VIN = "VF-FADIL-001",
+                Color = "Red",
+                Price = 425000000,
+                Description = "VinFast Fadil - Gasoline Hatchback",
+                IsAvailable = true,
+                CategoryId = hatchbackCategory.Id
+            };
+            var vinfastPresident = new Vehicle
+            {
+                Id = Guid.NewGuid(),
+                Make = "VinFast",
+                Model = "President",
+                Year = 2021,
+                VIN = "VF-PRESIDENT-001",
+                Color = "Black",
+                Price = 4600000000,
+                Description = "VinFast President - Luxury Gasoline SUV",
+                IsAvailable = true,
+                CategoryId = luxuryCategory.Id
+            };
+
+            // Add all VinFast vehicles to the context
+            await context.Vehicles.AddRangeAsync(
+                vinfastE34, vinfastVf5, vinfastVf6, vinfastVf7, vinfastVf8, vinfastVf9,
+                vinfastLuxA20, vinfastLuxSA20, vinfastFadil, vinfastPresident
+            );
 
             // Seed Inventories
             var inventory1 = new Inventory
@@ -138,25 +240,25 @@ namespace CompanyDealer.DataInitalizer
             var inventoryVehicle1 = new InventoryVehicle
             {
                 InventoryId = inventory1.Id,
-                VehicleId = vehicle1.Id,
+                VehicleId = vinfastE34.Id,
                 Quantity = 5
             };
             var inventoryVehicle2 = new InventoryVehicle
             {
                 InventoryId = inventory1.Id,
-                VehicleId = vehicle2.Id,
+                VehicleId = vinfastVf5.Id,
                 Quantity = 2
             };
             var inventoryVehicle3 = new InventoryVehicle
             {
                 InventoryId = inventory2.Id,
-                VehicleId = vehicle3.Id,
+                VehicleId = vinfastVf6.Id,
                 Quantity = 3
             };
             var inventoryVehicle4 = new InventoryVehicle
             {
                 InventoryId = inventory3.Id,
-                VehicleId = vehicle1.Id,
+                VehicleId = vinfastE34.Id,
                 Quantity = 1
             };
             await context.InventoryVehicles.AddRangeAsync(inventoryVehicle1, inventoryVehicle2, inventoryVehicle3, inventoryVehicle4);
@@ -254,15 +356,69 @@ namespace CompanyDealer.DataInitalizer
                 IsActive = true,
                 Username = "manager1",
                 Password = BCrypt.Net.BCrypt.HashPassword("manager123"),
-                DealerId = dealer1Id, // or assign to another dealer as needed
+                DealerId = dealer2Id, // or assign to another dealer as needed
                 Roles = new[] { dealerManagerRole }
+            };
+
+            // DealerAdmin account
+            var dealerAdminAccount = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Admin 1",
+                ContactPerson = "Dealer Admin Person",
+                Email = "dealeradmin1@dealer.local",
+                Phone = "+84 912 777 888",
+                Address = "111 Dealer Admin Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealeradmin1",
+                Password = BCrypt.Net.BCrypt.HashPassword("dealeradmin123"),
+                DealerId = dealer1Id,
+                Roles = new[] { dealerAdminRole }
+            };
+
+            // DealerStaff account
+            var dealerStaffAccount = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Staff 1",
+                ContactPerson = "Dealer Staff Person",
+                Email = "dealerstaff1@dealer.local",
+                Phone = "+84 912 888 999",
+                Address = "222 Dealer Staff Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "dealerstaff1",
+                Password = BCrypt.Net.BCrypt.HashPassword("dealerstaff123"),
+                DealerId = dealer2Id,
+                Roles = new[] { dealerStaffRole }
+            };
+
+            // CompanyManager account
+            var companyManagerAccount = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Company Manager 1",
+                ContactPerson = "Company Manager Person",
+                Email = "companymanager1@dealer.local",
+                Phone = "+84 912 999 000",
+                Address = "333 Company Manager Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "companymanager1",
+                Password = BCrypt.Net.BCrypt.HashPassword("companymanager123"),
+                DealerId = dealer1Id,
+                Roles = new[] { companyManagerRole }
             };
 
             await context.Dealers.AddRangeAsync(dealer1, dealer2, dealer3);
             await context.Accounts.AddRangeAsync(
                 adminAccount1, adminAccount2, adminAccount3,
                 companyStaff1, companyStaff2,
-                dealerManagerAccount
+                dealerManagerAccount,
+                dealerAdminAccount,
+                dealerStaffAccount,
+                companyManagerAccount
             );
 
             await context.SaveChangesAsync();

@@ -1,8 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using CompanyDealer.BLL.DTOs.InventoryDTOs;
+﻿using CompanyDealer.BLL.DTOs.InventoryDTOs;
+using CompanyDealer.BLL.ExceptionHandle;
 using CompanyDealer.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace CompanyDealer.Controllers
 {
@@ -11,10 +13,12 @@ namespace CompanyDealer.Controllers
     public class InventoryController : ControllerBase
     {
         private readonly InventoryService _service;
+        private readonly AuthService _authService;
 
-        public InventoryController(InventoryService service)
+        public InventoryController(InventoryService service, AuthService authService)
         {
             _service = service;
+            _authService = authService;
         }
 
         [HttpGet]
@@ -52,11 +56,22 @@ namespace CompanyDealer.Controllers
             return Ok(res);
         }
 
-        [HttpGet("dealer/{dealerId:guid}/vehicles")]
-        public async Task<IActionResult> GetVehiclesByDealerId(Guid dealerId)
+        [HttpGet("dealer/vehicles")]
+        public async Task<IActionResult> GetVehiclesByDealerId()
         {
-            var vehicles = await _service.GetVehicleInInventory(dealerId);
+            var userId = GetUserIdFromToken();
+            var userDealerId = await _authService.GetDealerIdByUserIdAsync(userId);
+            var vehicles = await _service.GetVehicleInInventory(userDealerId.Value);
             return Ok(vehicles);
+        }
+        private Guid GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value
+                ?? User.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                throw new ApiException.UnauthorizedException("Invalid user token");
+            return userId;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Models;
@@ -63,8 +64,6 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
             return true;
         }
 
-        
-
         public async Task<List<Vehicle>> GetVehicleInInventory(Guid dealerId)
         {
             var vehicles = await _db.Inventories
@@ -78,6 +77,39 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
             return vehicles;
         }
 
-        
+        public Task<bool> ReduceQuantityIfEnough(Guid vehicleId, Guid dealerId, int quantity)
+        {
+            return Task.Run(async () =>
+            {
+                var inventory = await _db.Inventories
+                    .Include(i => i.InventoryVehicles)
+                    .FirstOrDefaultAsync(i => i.DealerId == dealerId);
+                if (inventory == null)
+                    return false;
+                var inventoryVehicle = inventory.InventoryVehicles
+                    .FirstOrDefault(iv => iv.VehicleId == vehicleId);
+                if (inventoryVehicle == null || inventoryVehicle.Quantity < quantity)
+                    return false;
+                inventoryVehicle.Quantity -= quantity;
+                await _db.SaveChangesAsync();
+                return true;
+            });
+        }
+
+        public async Task<List<object>> GetVehicleWithQuantityByDealer(Guid dealerId)
+        {
+            var inventoryVehicles = await _db.InventoryVehicles
+                .Include(iv => iv.Vehicle)
+                .Where(iv => iv.Inventory.DealerId == dealerId)
+                .ToListAsync();
+
+            var result = inventoryVehicles.Select(iv => new
+            {
+                Vehicle = iv.Vehicle,
+                Quantity = iv.Quantity
+            }).ToList<object>();
+
+            return result;
+        }
     }
 }

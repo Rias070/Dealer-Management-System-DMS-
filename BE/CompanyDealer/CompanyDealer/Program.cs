@@ -1,18 +1,19 @@
 ﻿using CompanyDealer.BLL.Services;
+using CompanyDealer.BLL.Utils;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repository;
+using CompanyDealer.DAL.Repository.RestockRepo;
 using CompanyDealer.DAL.Repository.VehicleRepo;
 using CompanyDealer.DataInitalizer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using CompanyDealer.BLL.Utils;
-using CompanyDealer.DAL.Repository.RestockRepo;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = configuration["Jwt:Audience"],
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            RoleClaimType = ClaimTypes.Role,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)),
             ClockSkew = TimeSpan.Zero
         };

@@ -55,5 +55,12 @@ namespace CompanyDealer.DAL.Repository.RestockRepo
                 .AsNoTracking()
                 .ToListAsync();
         }
+        public async Task<List<RestockRequest>> GetRequestsForAcceptenceLevelAsync(string acceptenceLevel)
+        {
+            return await _db.RestockRequests
+                .Where(r => r.AcceptenceLevel == acceptenceLevel)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

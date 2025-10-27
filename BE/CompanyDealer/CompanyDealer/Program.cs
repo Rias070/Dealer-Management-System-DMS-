@@ -1,18 +1,19 @@
 ﻿using CompanyDealer.BLL.Services;
+using CompanyDealer.BLL.Utils;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repository;
+using CompanyDealer.DAL.Repository.RestockRepo;
 using CompanyDealer.DAL.Repository.VehicleRepo;
 using CompanyDealer.DataInitalizer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using CompanyDealer.BLL.Utils;
-using CompanyDealer.DAL.Repository.RestockRepo;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,8 @@ builder.Services.AddSingleton<IConfiguration>(configuration);
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+
 
 // Authentication (JWT)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -36,6 +39,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = configuration["Jwt:Audience"],
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            RoleClaimType = ClaimTypes.Role,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)),
             ClockSkew = TimeSpan.Zero
         };
@@ -89,11 +93,12 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Description = "Enter JWT token. You don’t need to add 'Bearer ' prefix manually.",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.Http,  // <--- Đổi từ ApiKey sang Http
+        Scheme = "bearer",                // <--- Phải là chữ thường
+        BearerFormat = "JWT"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -127,6 +132,14 @@ builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<IRestockRequestRepository, RestockRequestRepository>();
 builder.Services.AddScoped<RestockRequestService>();
 
+// Dealer services
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.DealerRepo.IDealerRepository, CompanyDealer.DAL.Repository.DealerRepo.DealerRepository>();
+builder.Services.AddScoped<DealerService>();
+builder.Services.AddScoped<CompanyDealer.BLL.Services.IRoleService, CompanyDealer.BLL.Services.RoleService>();
+
+// TestDrive services
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.TestDriveRepo.ITestDriveRepository, CompanyDealer.DAL.Repository.TestDriveRepo.TestDriveRepository>();
+builder.Services.AddScoped<ITestDriveService, TestDriveService>();
 
 // Register repository interface
 //

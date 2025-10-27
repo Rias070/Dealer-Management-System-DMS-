@@ -15,5 +15,6 @@ namespace CompanyDealer.DAL.Repository.RestockRepo
         Task UpdateAsync(RestockRequest entity);
         Task<bool> DeleteAsync(Guid id);
         Task<List<RestockRequest>> GetByDealerIdAsync(Guid dealerId);
+        Task<List<RestockRequest>> GetRequestsForAcceptenceLevelAsync(string acceptenceLevel);
     }
 }

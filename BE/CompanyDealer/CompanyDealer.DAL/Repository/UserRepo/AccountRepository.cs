@@ -69,6 +69,18 @@ namespace CompanyDealer.DAL.Repository.UserRepo
             var dealer = await _context.Set<Dealer>().FirstOrDefaultAsync(d => d.Name == dealerName);
             return dealer?.Id;
         }
+
+        public async Task<Guid?> GetDealerByAccount(Guid userId)
+        {
+            var dealerId = await (from account in _context.Set<Account>()
+                                    join d in _context.Set<Dealer>()
+                                    on account.DealerId equals d.Id
+                                    where account.Id == userId
+                                    select d.Id).FirstOrDefaultAsync();
+            return dealerId;
+        }
+
+        
     }
 }
 

@@ -186,5 +186,9 @@ namespace CompanyDealer.BLL.Services
             await _userRepository.UpdateAsync(user);
             return true;
         }
+        public async Task<Guid?> GetDealerIdByUserIdAsync(Guid userId)
+        {
+            return await _userRepository.GetDealerByAccount(userId);
+        }
     }
 }

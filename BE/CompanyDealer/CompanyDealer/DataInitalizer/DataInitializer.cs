@@ -241,8 +241,29 @@ namespace CompanyDealer.DataInitalizer
                 Roles = new[] { companyStaffRole }
             };
 
+            // Seed DealerManager account
+            var dealerManagerAccount = new Account
+            {
+                Id = Guid.NewGuid(),
+                Name = "Dealer Manager 1",
+                ContactPerson = "Manager Person 1",
+                Email = "manager1@dealer.local",
+                Phone = "+84 912 555 666",
+                Address = "321 Manager Street",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Username = "manager1",
+                Password = BCrypt.Net.BCrypt.HashPassword("manager123"),
+                DealerId = dealer1Id, // or assign to another dealer as needed
+                Roles = new[] { dealerManagerRole }
+            };
+
             await context.Dealers.AddRangeAsync(dealer1, dealer2, dealer3);
-            await context.Accounts.AddRangeAsync(adminAccount1, adminAccount2, adminAccount3, companyStaff1, companyStaff2);
+            await context.Accounts.AddRangeAsync(
+                adminAccount1, adminAccount2, adminAccount3,
+                companyStaff1, companyStaff2,
+                dealerManagerAccount
+            );
 
             await context.SaveChangesAsync();
         }

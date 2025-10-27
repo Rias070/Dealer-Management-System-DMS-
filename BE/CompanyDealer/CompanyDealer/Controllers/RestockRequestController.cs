@@ -108,5 +108,14 @@ namespace CompanyDealer.Controllers
                 throw new ApiException.UnauthorizedException("Invalid user token");
             return userId;
         }
+
+        //CompanyStaff: View all restock requests for company staff
+        [Authorize(Roles = "CompanyStaff")]
+        [HttpGet("/companystaff")]
+        public async Task<IActionResult> GetRequestsForCompanyStaff()
+        {
+            var requests = await _service.GetRestockRequestForCompany();
+            return Ok(ApiResponse<object>.SuccessResponse(requests, "Fetched restock requests for company staff"));
+        }
     }
 }

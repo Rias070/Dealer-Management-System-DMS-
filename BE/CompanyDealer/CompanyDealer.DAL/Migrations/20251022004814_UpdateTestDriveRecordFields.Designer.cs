@@ -3,6 +3,7 @@ using System;
 using CompanyDealer.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251022004814_UpdateTestDriveRecordFields")]
+    partial class UpdateTestDriveRecordFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -390,57 +393,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.ToTable("Quotations");
                 });
 
-            modelBuilder.Entity("CompanyDealer.DAL.Models.RestockRequest", b =>
-                {
-                    b.Property<Guid>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AcceptedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("AcceptenceLevel")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("DealerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("RequestDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ResponseDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("VehicleId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("DealerId");
-
-                    b.HasIndex("VehicleId");
-
-                    b.ToTable("RestockRequests");
-                });
-
             modelBuilder.Entity("CompanyDealer.DAL.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -762,33 +714,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("CompanyDealer.DAL.Models.RestockRequest", b =>
-                {
-                    b.HasOne("CompanyDealer.DAL.Models.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
-                        .WithMany()
-                        .HasForeignKey("DealerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CompanyDealer.DAL.Models.Vehicle", "Vehicle")
-                        .WithMany()
-                        .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Dealer");
-
-                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.SaleContract", b =>

@@ -67,11 +67,11 @@ namespace CompanyDealer.BLL.Services
 
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-                var dealerId = await _userRepository.GetDealerIdByNameAsync(request.DealerName);
+                var dealerId = request.DealerId;
                 if (dealerId == null)
                 {
                     await transaction.RollbackAsync();
-                    throw new ApiException.NotFoundException($"Dealer '{request.DealerName}' does not exist");
+                    throw new ApiException.NotFoundException($"Dealer '{request.DealerId}' does not exist");
                 }
 
                 var user = new DAL.Models.Account
@@ -85,7 +85,7 @@ namespace CompanyDealer.BLL.Services
                     Phone = request.Phone,
                     ContactPerson = request.ContactPerson,
                     CreatedAt = DateTime.UtcNow,
-                    DealerId = dealerId.Value,
+                    DealerId = dealerId,
                     Roles = new List<Role>()
                 };
 
@@ -95,15 +95,15 @@ namespace CompanyDealer.BLL.Services
 
                 await _userRepository.AddAsync(user);
 
-                string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "CompanyStaff";
-                var role = await _roleRepository.GetByNameAsync(roleName);
+               
+                var role = await _roleRepository.GetByIdAsync(request.RoleId);
                 if (role == null)
                 {
                     await transaction.RollbackAsync();
-                    throw new ApiException.NotFoundException($"Role '{roleName}' does not exist");
+                    throw new ApiException.NotFoundException($"Role '{request.RoleId}' does not exist");
                 }
 
-                await _userRepository.AssignRoleToUserAsync(user.Id, roleName);
+                await _userRepository.AssignRoleToUserAsync(user.Id, request.RoleId);
 
                 await transaction.CommitAsync();
 

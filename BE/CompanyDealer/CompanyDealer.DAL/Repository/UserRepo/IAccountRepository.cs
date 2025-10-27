@@ -9,7 +9,7 @@ namespace CompanyDealer.DAL.Repository.UserRepo
         Task<Account> GetByUserNameAndPasswordAsync(string userName, string password);
         Task<Account> GetByIdWithRolesAsync(Guid userId);
         Task<Account> GetByUserNameWithRolesAsync(string userName);
-        Task AssignRoleToUserAsync(Guid userId, string roleName);
+        Task AssignRoleToUserAsync(Guid userId, Guid roleId);
         Task<Account> GetUserByUserIdAsync(Guid userId);
         Task<Guid?> GetDealerIdByNameAsync(string dealerName);
         Task<Guid?> GetDealerByAccount(Guid userId);

@@ -129,7 +129,13 @@ namespace CompanyDealer.BLL.Services
                 Price = v.Price,
                 Description = v.Description,
                 IsAvailable = v.IsAvailable,
-                CategoryId = v.CategoryId
+                CategoryId = v.CategoryId,
+                Category = v.Category != null ? new CategoryDto
+                {
+                    Id = v.Category.Id,
+                    Name = v.Category.Name,
+                    Description = v.Category.Description
+                } : null
             };
         }
     }

@@ -3,6 +3,7 @@ using System;
 using CompanyDealer.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251027142249_addVehicleNameRestock")]
+    partial class addVehicleNameRestock
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,38 +145,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("CompanyDealer.DAL.Models.Contract", b =>
-                {
-                    b.Property<Guid>("ContractId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ExpirationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("RestockRequestId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("ContractId");
-
-                    b.HasIndex("RestockRequestId");
-
-                    b.ToTable("Contracts");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Dealer", b =>
@@ -463,9 +434,6 @@ namespace CompanyDealer.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("numeric");
-
                     b.Property<Guid>("VehicleId")
                         .HasColumnType("uuid");
 
@@ -724,17 +692,6 @@ namespace CompanyDealer.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("CompanyDealer.DAL.Models.Contract", b =>
-                {
-                    b.HasOne("CompanyDealer.DAL.Models.RestockRequest", "RestockRequest")
-                        .WithMany()
-                        .HasForeignKey("RestockRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RestockRequest");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.DealerContract", b =>

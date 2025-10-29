@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using CompanyDealer.DAL.Migrations;
 
 namespace CompanyDealer.Controllers
 {
@@ -15,11 +16,13 @@ namespace CompanyDealer.Controllers
     {
         private readonly RestockRequestService _service;
         private readonly AuthService _authService;
+        private readonly VehicleService _vehicleService;
 
-        public RestockRequestController(RestockRequestService service, AuthService authService)
+        public RestockRequestController(RestockRequestService service, AuthService authService, VehicleService vehicleService)
         {
             _service = service;
             _authService = authService;
+            _vehicleService = vehicleService;
         }
 
         
@@ -47,14 +50,17 @@ namespace CompanyDealer.Controllers
         {
             var userId = GetUserIdFromToken();
             var dealerId = await _authService.GetDealerIdByUserIdAsync(userId);
+            var vehicle = await _vehicleService.GetByIdAsync(requestDto.VehicleId);
+            var vehicleName = vehicle.Vehicle.Model; 
             var dto = new CreateRestockRequestDto
             {
                 AccountId = userId,
                 DealerId = dealerId.Value,
                 VehicleId = requestDto.VehicleId,
+                VehicleName = vehicleName,
                 Quantity = requestDto.Quantity,
                 Description = requestDto.Description
-            };
+            }; 
             var res = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = res.Id }, ApiResponse<object>.SuccessResponse(res, "Created restock request"));
         }
@@ -79,7 +85,7 @@ namespace CompanyDealer.Controllers
 
         // DealerManager, DealerAdmin: Accept and escalate to company or reject
         [Authorize(Roles = "DealerManager,DealerAdmin")]
-        [HttpPost("{id:guid}/accept")]
+        [HttpPost("{id:guid}/dealer/accept")]
         public async Task<IActionResult> AcceptAndEscalate(Guid id)
         {
             var userId = GetUserIdFromToken();
@@ -90,7 +96,7 @@ namespace CompanyDealer.Controllers
         }
 
         [Authorize(Roles = "DealerManager,DealerAdmin")]
-        [HttpPost("{id:guid}/reject")]
+        [HttpPost("{id:guid}/dealer/reject")]
         public async Task<IActionResult> Reject(Guid id, string rejectReason)
         {
             var userId = GetUserIdFromToken();
@@ -112,7 +118,16 @@ namespace CompanyDealer.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(null, "Request accepted from company."));
         }
 
-
+        [Authorize(Roles = "CompanyAdmin,CompanyManager")]
+        [HttpPost("{id:guid}/company/reject")]
+        public async Task<IActionResult> CompanyDecline(Guid id, string rejectReason)
+        {
+            var userId = GetUserIdFromToken();
+            var success = await _service.CompanyRejectAsync(id, rejectReason);
+            if (!success)
+                return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", "Cannot accept this request."));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Request rejected from company."));
+        }
 
         // DealerManager: View all restock requests for their dealer (dealerId from user)
         [Authorize(Roles = "DealerManager,DealerAdmin")]
@@ -129,7 +144,7 @@ namespace CompanyDealer.Controllers
 
         // CompanyManager,CompanyAdmin: View all restock requests for company
         [Authorize(Roles = "CompanyManager,CompanyAdmin")]
-        [HttpPost("requests")]
+        [HttpGet("company/requests")]
         public async Task<IActionResult> GetRequestForCompany()
         {
             var requests = await _service.GetRestockRequestFor("Company");

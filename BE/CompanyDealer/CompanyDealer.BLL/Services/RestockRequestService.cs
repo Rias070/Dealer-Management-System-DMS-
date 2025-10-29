@@ -1,20 +1,26 @@
-using CompanyDealer.DAL.Models;
+﻿using CompanyDealer.DAL.Models;
 using CompanyDealer.DAL.Repository.RestockRepo;
 using CompanyDealer.BLL.DTOs.RestockRequestDTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CompanyDealer.DAL.Repository.InventoryRepo;
+using CompanyDealer.DAL.Repository.VehicleRepo;
+using CompanyDealer.DAL.Repository.ContractRepo;
 
 public class RestockRequestService
 {
     private readonly IRestockRequestRepository _repo;
     private readonly IInventoryRepository _inventoryRepo;
+    private readonly IVehicleRepository _vehicleRepo;
+    private readonly IContractRepository _contractRepo;
 
-    public RestockRequestService(IRestockRequestRepository repo, IInventoryRepository inventoryRepo)
+    public RestockRequestService(IRestockRequestRepository repo, IInventoryRepository inventoryRepo, IVehicleRepository vehicleRepository, IContractRepository contractRepository)
     {
         _repo = repo;
         _inventoryRepo = inventoryRepo;
+        _vehicleRepo = vehicleRepository;
+        _contractRepo = contractRepository;
     }
 
     public async Task<List<RestockRequestDto>> GetAllAsync()
@@ -62,6 +68,12 @@ public class RestockRequestService
 
     public async Task<RestockRequestDto> CreateAsync(CreateRestockRequestDto dto)
     {
+        var Vehice = await _vehicleRepo.GetByIdAsync(dto.VehicleId);
+        if (Vehice == null)
+        {
+            throw new ArgumentException($"Vehicle with ID {dto.VehicleId} not found in inventory", nameof(dto.VehicleId));
+        }
+        var totalPrice = Vehice.Price * dto.Quantity;
         var entity = new RestockRequest
         {
             id = Guid.NewGuid(),
@@ -70,6 +82,7 @@ public class RestockRequestService
             VehicleId = dto.VehicleId,
             VehicleName = dto.VehicleName,
             Quantity = dto.Quantity,
+            TotalPrice = totalPrice,
             RequestDate = DateTime.UtcNow,
             Status = "Pending",
             AcceptenceLevel = "Dealer",
@@ -131,29 +144,41 @@ public class RestockRequestService
         var entity = await _repo.GetByIdAsync(id);
         if (entity == null || entity.Status != "Pending" || entity.AcceptenceLevel != "Company")
             return false;
-        bool result = await _inventoryRepo.ReduceQuantityIfEnough(entity.VehicleId, entity.DealerId, entity.Quantity);
+        bool result = await _inventoryRepo.ReduceQuantityIfEnough(entity.VehicleId, entity.Quantity);
         if (!result)
             return false;
         entity.Status = "Accept";
         entity.AcceptenceLevel = "Company";
         entity.AcceptedBy = managerAccountId.ToString();
         entity.ResponseDate = DateTime.UtcNow;
+        // ✅ Generate Contract
+
+        var contract = new Contract
+        {
+            RestockRequestId = id,
+            TotalAmount = entity.TotalPrice, // hoặc tính lại nếu có
+            ExpirationDate = DateTime.UtcNow.AddMonths(6), // ví dụ hợp đồng có hạn 6 tháng
+            Notes = "Automatically generated when company accepted the restock request."
+        };
+        await _contractRepo.AddAsync(contract);
+
         await _repo.UpdateAsync(entity);
         return true;
     }
 
-    public async Task<bool> AcceptAsync(Guid id, Guid managerAccountId)
+    public async Task<bool> CompanyRejectAsync(Guid id, string rejectReason)
     {
         var entity = await _repo.GetByIdAsync(id);
         if (entity == null || entity.Status != "Pending" || entity.AcceptenceLevel != "Company")
             return false;
-        entity.Status = "Accepted";
-        entity.AcceptenceLevel = "CompanyStaff";
-        entity.AcceptedBy = managerAccountId.ToString();
+        entity.Status = "Rejected";
+        entity.ReasonRejected = rejectReason;
         entity.ResponseDate = DateTime.UtcNow;
         await _repo.UpdateAsync(entity);
         return true;
     }
+
+
 
     public async Task<List<RestockRequestDto>> GetRequestsByDealerManager(Guid dealerId)
     {

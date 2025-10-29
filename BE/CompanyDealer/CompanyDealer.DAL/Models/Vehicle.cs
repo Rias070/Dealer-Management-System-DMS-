@@ -13,6 +13,7 @@ namespace CompanyDealer.DAL.Models
         public string Color { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public string Description { get; set; } = string.Empty;
+        
         public bool IsAvailable { get; set; } = true;
 
         // Quan hệ

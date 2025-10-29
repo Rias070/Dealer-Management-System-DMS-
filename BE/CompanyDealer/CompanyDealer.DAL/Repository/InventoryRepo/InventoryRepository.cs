@@ -77,23 +77,32 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
             return vehicles;
         }
 
-        public Task<bool> ReduceQuantityIfEnough(Guid vehicleId, Guid dealerId, int quantity)
+        public async Task<bool> ReduceQuantityIfEnough(Guid vehicleId, int quantity)
         {
-            return Task.Run(async () =>
-            {
-                var inventory = await _db.Inventories
-                    .Include(i => i.InventoryVehicles)
-                    .FirstOrDefaultAsync(i => i.DealerId == dealerId);
-                if (inventory == null)
-                    return false;
-                var inventoryVehicle = inventory.InventoryVehicles
-                    .FirstOrDefault(iv => iv.VehicleId == vehicleId);
-                if (inventoryVehicle == null || inventoryVehicle.Quantity < quantity)
-                    return false;
-                inventoryVehicle.Quantity -= quantity;
-                await _db.SaveChangesAsync();
-                return true;
-            });
+            var inventoryId = await GetIdInventory("Company");
+            var inventoryVehicle = await _db.InventoryVehicles
+                .Include(iv => iv.Inventory)
+                .FirstOrDefaultAsync(iv =>
+                    iv.VehicleId == vehicleId &&
+                    iv.InventoryId == inventoryId);
+
+            if (inventoryVehicle == null || inventoryVehicle.Quantity < quantity)
+                return false;
+
+            inventoryVehicle.Quantity -= quantity;
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        private async Task<Guid?> GetIdInventory(string DealerName)
+        {
+            var dealer = await _db.Dealers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Name == DealerName);
+            var inventory = await _db.Inventories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.DealerId == dealer.Id);
+            return inventory?.Id;
         }
 
         public async Task<List<object>> GetVehicleWithQuantityByDealer(Guid dealerId)

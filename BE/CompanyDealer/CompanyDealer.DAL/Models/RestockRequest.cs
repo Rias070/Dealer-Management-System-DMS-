@@ -17,6 +17,7 @@ namespace CompanyDealer.DAL.Models
         public String VehicleName { get; set; } = null!;
         public Vehicle Vehicle { get; set; } = null!;
         public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
         public DateTime RequestDate { get; set; } = DateTime.UtcNow;
         public DateTime ResponseDate { get; set; }
         public string AcceptenceLevel { get; set; } = "Dealer"; // Dealer, Company

@@ -15,6 +15,7 @@ namespace CompanyDealer.DAL.Data
         }
 
         public DbSet<Account> Accounts { get; set; } = null!;
+        public DbSet<Customer> Customers { get; set; } = null!;
         public DbSet<Role> Roles { get; set; } = null!;
         public DbSet<Token> Tokens { get; set; } = null!; 
         public DbSet<Dealer> Dealers { get; set; } = null!;

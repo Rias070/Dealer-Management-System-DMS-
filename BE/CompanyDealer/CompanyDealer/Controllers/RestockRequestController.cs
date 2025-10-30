@@ -85,7 +85,7 @@ namespace CompanyDealer.Controllers
 
         // DealerManager, DealerAdmin: Accept and escalate to company or reject
         [Authorize(Roles = "DealerManager,DealerAdmin")]
-        [HttpPost("{id:guid}/accept")]
+        [HttpPost("{id:guid}/dealer/accept")]
         public async Task<IActionResult> AcceptAndEscalate(Guid id)
         {
             var userId = GetUserIdFromToken();
@@ -96,7 +96,7 @@ namespace CompanyDealer.Controllers
         }
 
         [Authorize(Roles = "DealerManager,DealerAdmin")]
-        [HttpPost("{id:guid}/reject")]
+        [HttpPost("{id:guid}/dealer/reject")]
         public async Task<IActionResult> Reject(Guid id, string rejectReason)
         {
             var userId = GetUserIdFromToken();
@@ -118,7 +118,16 @@ namespace CompanyDealer.Controllers
             return Ok(ApiResponse<object>.SuccessResponse(null, "Request accepted from company."));
         }
 
-
+        [Authorize(Roles = "CompanyAdmin,CompanyManager")]
+        [HttpPost("{id:guid}/company/reject")]
+        public async Task<IActionResult> CompanyDecline(Guid id, string rejectReason)
+        {
+            var userId = GetUserIdFromToken();
+            var success = await _service.CompanyRejectAsync(id, rejectReason);
+            if (!success)
+                return BadRequest(ApiResponse<object>.FailResponse("BAD_REQUEST", "Cannot accept this request."));
+            return Ok(ApiResponse<object>.SuccessResponse(null, "Request rejected from company."));
+        }
 
         // DealerManager: View all restock requests for their dealer (dealerId from user)
         [Authorize(Roles = "DealerManager,DealerAdmin")]
@@ -135,7 +144,7 @@ namespace CompanyDealer.Controllers
 
         // CompanyManager,CompanyAdmin: View all restock requests for company
         [Authorize(Roles = "CompanyManager,CompanyAdmin")]
-        [HttpPost("requests")]
+        [HttpGet("company/requests")]
         public async Task<IActionResult> GetRequestForCompany()
         {
             var requests = await _service.GetRestockRequestFor("Company");

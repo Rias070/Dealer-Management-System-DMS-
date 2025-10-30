@@ -20,6 +20,7 @@ namespace CompanyDealer.DAL.Data
         public DbSet<Token> Tokens { get; set; } = null!; 
         public DbSet<Dealer> Dealers { get; set; } = null!;
         public DbSet<DealerContract> DealerContracts { get; set; } = null!;
+        public DbSet<Contract> Contracts { get; set; } = null!;
         public DbSet<Feedback> Feedbacks { get; set; } = null!;
         public DbSet<TestDriveRecord> TestDriveRecords { get; set; } = null!;
         public DbSet<Inventory> Inventories { get; set; } = null!;
@@ -36,6 +37,23 @@ namespace CompanyDealer.DAL.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Ensure RestockRequest PK is configured (model uses 'id' lowercase)
+            modelBuilder.Entity<RestockRequest>()
+                .HasKey(r => r.id);
+
+            // Configure Contract entity: primary key + FK to RestockRequest
+            modelBuilder.Entity<Contract>(entity =>
+            {
+                entity.HasKey(c => c.ContractId);
+
+                // Contract -> RestockRequest (many contracts could point to one restock request,
+                // or adjust to WithOne() if you expect a strict 1:1)
+                entity.HasOne(c => c.RestockRequest)
+                      .WithMany() // RestockRequest currently doesn't expose a Contract navigation property
+                      .HasForeignKey(c => c.RestockRequestId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // Account - Dealer relationship
             modelBuilder.Entity<Account>()

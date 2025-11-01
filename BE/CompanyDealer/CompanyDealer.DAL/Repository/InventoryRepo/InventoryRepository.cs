@@ -94,6 +94,42 @@ namespace CompanyDealer.DAL.Repository.InventoryRepo
             await _db.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> IncreaseQuantity(Guid vehicleId, int quantity, Guid dealerId)
+        {
+            var inventoryId = await GetIdInventory(dealerId);
+            if (!inventoryId.HasValue) return false;
+
+            var inventoryVehicle = await _db.InventoryVehicles
+                .FirstOrDefaultAsync(iv =>
+                    iv.VehicleId == vehicleId &&
+                    iv.InventoryId == inventoryId.Value);
+
+            if (inventoryVehicle == null)
+            {
+                inventoryVehicle = new InventoryVehicle
+                {
+                    InventoryId = inventoryId.Value,
+                    VehicleId = vehicleId,
+                    Quantity = quantity
+                };
+                _db.InventoryVehicles.Add(inventoryVehicle);
+            }
+            else
+            {
+                inventoryVehicle.Quantity += quantity;
+                _db.InventoryVehicles.Update(inventoryVehicle);
+            }
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        private async Task<Guid?>  GetIdInventory(Guid dealerId)
+        {
+            var inventory = await _db.Inventories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.DealerId == dealerId);
+            return inventory?.Id;
+        }
         private async Task<Guid?> GetIdInventory(string DealerName)
         {
             var dealer = await _db.Dealers

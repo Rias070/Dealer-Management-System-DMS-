@@ -164,7 +164,7 @@ namespace CompanyDealer.Controllers
         /// Approve test drive (DealerAdmin only)
         /// </summary>
         [HttpPost("{id}/approve")]
-        [Authorize(Roles = "DealerAdmin")]
+        [Authorize(Roles = "DealerAdmin,DealerManager")]
         public async Task<IActionResult> Approve(Guid id, [FromBody] ApproveTestDriveRequest request)
         {
             try
@@ -194,7 +194,7 @@ namespace CompanyDealer.Controllers
         /// Reject test drive (DealerAdmin only)
         /// </summary>
         [HttpPost("{id}/reject")]
-        [Authorize(Roles = "DealerAdmin")]
+        [Authorize(Roles = "DealerAdmin, DealerManager")]
         public async Task<IActionResult> Reject(Guid id, [FromBody] RejectTestDriveRequest request)
         {
             try

@@ -1,4 +1,4 @@
-﻿using CompanyDealer.BLL.DTOs.Order;
+﻿using CompanyDealer.BLL.DTOs.OrderDTOs;
 using CompanyDealer.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,27 +15,51 @@ namespace CompanyDealer.API.Controllers
             _orderService = orderService;
         }
 
+        // GET: api/order
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _orderService.GetAllAsync();
-            return Ok(result);
+            var orders = await _orderService.GetAllAsync();
+            return Ok(orders);
         }
 
-        [HttpGet("{orderNumber}")]
-        public async Task<IActionResult> GetByOrderNumber(string orderNumber)
+        // ✅ GET: api/order/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            var result = await _orderService.GetByOrderNumberAsync(orderNumber);
-            if (result == null)
-                return NotFound($"Order {orderNumber} not found.");
-            return Ok(result);
+            var order = await _orderService.GetByIdAsync(id);
+            if (order == null) return NotFound();
+            return Ok(order);
         }
 
+        // ✅ POST: api/order
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] OrderCreateRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
         {
-            var created = await _orderService.CreateAsync(request);
-            return CreatedAtAction(nameof(GetByOrderNumber), new { orderNumber = created.OrderNumber }, created);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var createdOrder = await _orderService.CreateAsync(request);
+
+            // ✅ Make sure GetById exists with {id} route parameter
+            return CreatedAtAction(nameof(GetByIdAsync), new { id = createdOrder.Id }, createdOrder);
+        }
+
+        // PUT: api/order/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateOrderRequest request)
+        {
+            var updated = await _orderService.UpdateAsync(id, request);
+            if (updated == null) return NotFound();
+            return Ok(updated);
+        }
+
+        // DELETE: api/order/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var deleted = await _orderService.DeleteAsync(id);
+            if (!deleted) return NotFound();
+            return NoContent();
         }
     }
 }

@@ -151,6 +151,9 @@ builder.Services.AddScoped<ITestDriveService, TestDriveService>();
 // Register repository interface
 //
 
+//SaleContract service
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.SaleContractRepo.ISaleContractRepository, CompanyDealer.DAL.Repository.SaleContractRepo.SaleContractRepository>();
+builder.Services.AddScoped<ISaleContractService, SaleContractService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

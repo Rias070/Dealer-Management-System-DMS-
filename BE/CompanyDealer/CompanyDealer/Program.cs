@@ -1,6 +1,8 @@
 ﻿using CompanyDealer.BLL.Services;
 using CompanyDealer.BLL.Utils;
 using CompanyDealer.DAL.Data;
+using CompanyDealer.DAL.Interfaces;
+using CompanyDealer.DAL.Repositories;
 using CompanyDealer.DAL.Repository;
 using CompanyDealer.DAL.Repository.ContractRepo;
 using CompanyDealer.DAL.Repository.CustomerRepo;
@@ -154,9 +156,14 @@ builder.Services.AddScoped<ITestDriveService, TestDriveService>();
 // Register repository interface
 //
 
-//SaleContract service
+//SaleContract
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.SaleContractRepo.ISaleContractRepository, CompanyDealer.DAL.Repository.SaleContractRepo.SaleContractRepository>();
 builder.Services.AddScoped<ISaleContractService, SaleContractService>();
+
+//Order
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>(); ;
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

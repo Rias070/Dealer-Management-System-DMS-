@@ -76,6 +76,13 @@ namespace CompanyDealer.DAL.Data
                 .HasForeignKey(f => f.DealerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Feedback - Customer relationship
+            modelBuilder.Entity<Feedback>()
+                .HasOne(f => f.Customer)
+                .WithMany(c => c.Feedbacks)
+                .HasForeignKey(f => f.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // TestDriveRecord relationships
             modelBuilder.Entity<TestDriveRecord>()
                 .HasOne(t => t.Dealer)

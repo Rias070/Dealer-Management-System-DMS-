@@ -2,6 +2,7 @@
 using CompanyDealer.BLL.Utils;
 using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repository;
+using CompanyDealer.DAL.Repository.ContractRepo;
 using CompanyDealer.DAL.Repository.CustomerRepo;
 using CompanyDealer.DAL.Repository.RestockRepo;
 using CompanyDealer.DAL.Repository.VehicleRepo;
@@ -135,6 +136,8 @@ builder.Services.AddScoped<IRestockRequestRepository, RestockRequestRepository>(
 builder.Services.AddScoped<RestockRequestService>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<IContractRepository, ContractRepository>();
+builder.Services.AddScoped<ContractService>();
 
 // Dealer services
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.DealerRepo.IDealerRepository, CompanyDealer.DAL.Repository.DealerRepo.DealerRepository>();

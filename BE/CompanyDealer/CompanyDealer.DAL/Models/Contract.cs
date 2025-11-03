@@ -12,8 +12,9 @@ namespace CompanyDealer.DAL.Models
 
         public Guid RestockRequestId { get; set; }
         public RestockRequest RestockRequest { get; set; }
+        public Guid DealerId { get; set; }
+        public Dealer Dealer { get; set; }
 
-        
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? ExpirationDate { get; set; }

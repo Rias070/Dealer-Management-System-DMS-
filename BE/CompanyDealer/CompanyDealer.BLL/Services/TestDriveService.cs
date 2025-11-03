@@ -20,6 +20,7 @@ namespace CompanyDealer.BLL.Services
         Task<bool> DeleteAsync(Guid id);
         Task<TestDriveResponse> ApproveAsync(Guid id, ApproveTestDriveRequest request, string approvedByName);
         Task<TestDriveResponse> RejectAsync(Guid id, RejectTestDriveRequest request, string rejectedByName);
+        Task<IEnumerable<TestDriveResponse>> GetTestDriveByDealerIdAsync(Guid dealerId);
     }
 
     public class TestDriveService : ITestDriveService
@@ -242,6 +243,11 @@ namespace CompanyDealer.BLL.Services
 
             var updated = await _testDriveRepository.UpdateAsync(testDrive);
             return MapToResponse(updated);
+        }
+        public async Task<IEnumerable<TestDriveResponse>> GetTestDriveByDealerIdAsync(Guid dealerId)
+        {
+            var testDrives = await _testDriveRepository.GetByDealerIdAsync(dealerId);
+            return testDrives.Select(MapToResponse);
         }
 
         private TestDriveResponse MapToResponse(TestDriveRecord testDrive)

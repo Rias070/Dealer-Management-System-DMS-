@@ -156,6 +156,7 @@ public class RestockRequestService
         var contract = new Contract
         {
             RestockRequestId = id,
+            DealerId = entity.DealerId,
             TotalAmount = entity.TotalPrice, // hoặc tính lại nếu có
             ExpirationDate = DateTime.UtcNow.AddMonths(6), // ví dụ hợp đồng có hạn 6 tháng
             Notes = "Automatically generated when company accepted the restock request."

@@ -11,6 +11,6 @@ namespace CompanyDealer.DAL.Repository.ContractRepo
 {
     public interface IContractRepository : IGenericRepository<Contract>
     {
-        
+        Task<IEnumerable<Contract>> GetByDealerId(Guid dealerId);
     }
 }

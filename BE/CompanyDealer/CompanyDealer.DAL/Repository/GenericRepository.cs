@@ -20,8 +20,8 @@ namespace CompanyDealer.DAL.Repository
             _dbSet = context.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(Guid id)
-        {
+        public async Task<T?> GetByIdAsync(Guid id)
+        {   
             return await _dbSet.FindAsync(id);
         }
 
@@ -52,6 +52,11 @@ namespace CompanyDealer.DAL.Repository
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _context.Database.BeginTransactionAsync();
+        }
+
+        public Task<IEnumerable<T>> GetAllAsync()
+        {
+            return Task.FromResult(_dbSet.AsEnumerable());
         }
     }
 }

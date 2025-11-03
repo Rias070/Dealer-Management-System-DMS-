@@ -1,72 +1,63 @@
-﻿using CompanyDealer;
-using CompanyDealer.DAL.Data;
+﻿using CompanyDealer.BLL.DTOs.CustomerDTOs;
+using CompanyDealer.BLL.Services;
 using CompanyDealer.DAL.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using CompanyDealer.BLL.ExceptionHandle;
 
 [Route("api/[controller]")]
 [ApiController]
 public class CustomerController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly CustomerService _customerService;
 
-    public CustomerController(ApplicationDbContext context)
+    public CustomerController(CustomerService customerService)
     {
-        _context = context;
-        _context.Database.EnsureCreated(); // create db if not exists
+        _customerService = customerService;
     }
 
     // GET: api/customer
     [HttpGet]
-    public IActionResult GetAll() => Ok(_context.Accounts.ToList());
-
-    // GET: api/customer/5
-    [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<ActionResult<List<Customer>>> GetAll()
     {
-        var customer = _context.Accounts.Find(id);
-        return customer == null ? NotFound() : Ok(customer);
+        var customers = await _customerService.GetAll();
+        return Ok(customers);
+    }
+
+    // GET: api/customer/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Customer>> GetById(Guid id)
+    {
+        var customer = await _customerService.GetById(id);
+        if (customer == null) return NotFound();
+        return Ok(customer);
     }
 
     // POST: api/customer
     [HttpPost]
-    public IActionResult Create(Account customer)
+    public async Task<ActionResult<Customer>> Create([FromBody] CustomerRequestDto request)
     {
-        _context.Accounts.Add(customer);
-        _context.SaveChanges();
+        var customer = await _customerService.Create(request);
         return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
     }
 
-    // PUT: api/customer/5
+    // PUT: api/customer/{id}
     [HttpPut("{id}")]
-    public IActionResult Update(int id, Account updated)
+    public async Task<IActionResult> Update(Guid id, [FromBody] CustomerRequestDto request)
     {
-        
-
-        var customer = _context.Accounts.Find(id);
-        if (customer == null) return NotFound();
-
-        customer.Name = updated.Name;
-        customer.ContactPerson = updated.ContactPerson;
-        customer.Email = updated.Email;
-        customer.Phone = updated.Phone;
-        customer.Address = updated.Address;
-        customer.IsActive = updated.IsActive;
-        _context.SaveChanges();
-        return NoContent();
+        var updated = await _customerService.Update(id, request);
+        if (!updated) return NotFound();
+        return Ok(ApiResponse<object>.SuccessResponse(null, "Updated"));
     }
 
-    // DELETE: api/customer/5
+    // DELETE: api/customer/{id}
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        var customer = _context.Accounts.Find(id);
-        if (customer == null) return NotFound();
-
-        _context.Accounts.Remove(customer);
-        _context.SaveChanges();
-        return NoContent();
+        var deleted = await _customerService.Delete(id);
+        if (!deleted) return NotFound();
+        return Ok(ApiResponse<object>.SuccessResponse(null, "Deleted"));
     }
 }

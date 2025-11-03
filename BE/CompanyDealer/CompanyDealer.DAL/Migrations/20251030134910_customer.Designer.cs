@@ -3,6 +3,7 @@ using System;
 using CompanyDealer.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251030134910_customer")]
+    partial class customer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,9 +156,6 @@ namespace CompanyDealer.DAL.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("DealerId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("ExpirationDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -173,8 +173,6 @@ namespace CompanyDealer.DAL.Migrations
                         .HasColumnType("numeric");
 
                     b.HasKey("ContractId");
-
-                    b.HasIndex("DealerId");
 
                     b.HasIndex("RestockRequestId");
 
@@ -769,19 +767,11 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Contract", b =>
                 {
-                    b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
-                        .WithMany()
-                        .HasForeignKey("DealerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("CompanyDealer.DAL.Models.RestockRequest", "RestockRequest")
                         .WithMany()
                         .HasForeignKey("RestockRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Dealer");
 
                     b.Navigation("RestockRequest");
                 });

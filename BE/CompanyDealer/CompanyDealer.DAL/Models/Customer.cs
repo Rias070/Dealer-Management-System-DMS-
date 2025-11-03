@@ -12,5 +12,6 @@ namespace CompanyDealer.DAL.Models
         public DateTime? Dob { get; set; }          // Date of birth (nullable)
         public DateTime CreatedAt { get; set; }     // Registration date
         public bool IsActive { get; set; }          // Status
+        public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     }
 }

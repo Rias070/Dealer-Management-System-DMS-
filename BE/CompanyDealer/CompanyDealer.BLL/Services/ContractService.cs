@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CompanyDealer.DAL.Models;
 using CompanyDealer.DAL.Repository.InventoryRepo;
+using CompanyDealer.DAL.Repository.VehicleRepo;
+using CompanyDealer.DAL.Repository.RestockRepo;
 
 namespace CompanyDealer.BLL.Services
 {
@@ -13,10 +15,12 @@ namespace CompanyDealer.BLL.Services
     {
         private IContractRepository _repo;
         private IInventoryRepository _inventoryRepo;
-        public ContractService(IContractRepository repository, IInventoryRepository inventoryRepository)
+        private IRestockRequestRepository _restockRepo;
+        public ContractService(IContractRepository repository, IInventoryRepository inventoryRepository, IRestockRequestRepository restockRequestRepository)
         {
             _repo = repository;
             _inventoryRepo = inventoryRepository;
+            _restockRepo = restockRequestRepository;
         }
         public async Task<List<Contract>> GetByDealerId(Guid dealerId)
         {
@@ -30,7 +34,8 @@ namespace CompanyDealer.BLL.Services
                 throw new ArgumentException($"Contract with ID {contractId} not found");
             contract.Status = "Confirmed";
             await _repo.UpdateAsync(contract);
-            await _inventoryRepo.IncreaseQuantity(contract.RestockRequest.VehicleId, contract.RestockRequest.Quantity, contract.DealerId);
+            var restockRequest = _restockRepo.GetByIdAsync(contract.RestockRequestId).Result;
+            await _inventoryRepo.IncreaseQuantity(restockRequest.VehicleId, contract.RestockRequest.Quantity, contract.DealerId);
             return contract;
         }
     }

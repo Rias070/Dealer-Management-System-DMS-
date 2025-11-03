@@ -17,10 +17,12 @@ namespace CompanyDealer.Controllers
     public class TestDriveController : ControllerBase
     {
         private readonly ITestDriveService _testDriveService;
+        private readonly AuthService _authService;
 
-        public TestDriveController(ITestDriveService testDriveService)
+        public TestDriveController(ITestDriveService testDriveService, AuthService authService)
         {
             _testDriveService = testDriveService;
+            _authService = authService;
         }
 
         /// <summary>
@@ -43,6 +45,32 @@ namespace CompanyDealer.Controllers
             {
                 return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
             }
+        }
+
+        [Authorize]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyDealerTestDrives()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                var dealerId = await _authService.GetDealerIdByUserIdAsync(userId);
+                var testDrives = await _testDriveService.GetTestDriveByDealerIdAsync(dealerId.Value);
+                return Ok(ApiResponse<IEnumerable<TestDriveResponse>>.SuccessResponse(testDrives, "User's test drives retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
+            }
+        }
+        private Guid GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value
+                ?? User.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                throw new ApiException.UnauthorizedException("Invalid user token");
+            return userId;
         }
 
         /// <summary>

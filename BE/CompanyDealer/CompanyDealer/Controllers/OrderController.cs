@@ -34,7 +34,7 @@ namespace CompanyDealer.API.Controllers
 
         // ✅ POST: api/order
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
+        public async Task<IActionResult> CreateAsync([FromBody] CreateOrderRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -46,7 +46,7 @@ namespace CompanyDealer.API.Controllers
 
         // PUT: api/order/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateOrderRequest request)
+        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateOrderRequest request)
         {
             var updated = await _orderService.UpdateAsync(id, request);
             if (updated == null) return NotFound();
@@ -55,7 +55,7 @@ namespace CompanyDealer.API.Controllers
 
         // DELETE: api/order/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> DeleteAsync(Guid id)
         {
             var deleted = await _orderService.DeleteAsync(id);
             if (!deleted) return NotFound();

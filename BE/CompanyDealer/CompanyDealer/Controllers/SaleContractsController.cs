@@ -72,7 +72,7 @@ namespace CompanyDealer.API.Controllers
             try
             {
                 var created = await _saleContractService.CreateAsync(request);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = created.Id }, created);
+                return CreatedAtAction("GetById", new { id = created.Id }, created);
             }
             catch (InvalidOperationException ex)
             {

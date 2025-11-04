@@ -80,7 +80,10 @@ namespace CompanyDealer.DAL.Repository.UserRepo
             return dealerId;
         }
 
-        
+        public async Task<IEnumerable<Account>> GetAccountsByDealerIdAsync(Guid dealerId)
+        {
+            return await _dbSet.Where(a => a.DealerId == dealerId).ToListAsync();
+        }
     }
 }
 

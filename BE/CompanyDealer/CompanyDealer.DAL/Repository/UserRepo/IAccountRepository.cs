@@ -13,6 +13,7 @@ namespace CompanyDealer.DAL.Repository.UserRepo
         Task<Account> GetUserByUserIdAsync(Guid userId);
         Task<Guid?> GetDealerIdByNameAsync(string dealerName);
         Task<Guid?> GetDealerByAccount(Guid userId);
+        Task<IEnumerable<Account>> GetAccountsByDealerIdAsync(Guid dealerId);
     }
 }
 

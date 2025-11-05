@@ -1,65 +1,66 @@
-﻿using CompanyDealer.BLL.DTOs.OrderDTOs;
+﻿using Microsoft.AspNetCore.Mvc;
 using CompanyDealer.BLL.Services;
-using Microsoft.AspNetCore.Mvc;
+using CompanyDealer.BLL.DTOs.OrderDTOs;
 
 namespace CompanyDealer.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrderController : ControllerBase
+    public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
 
-        public OrderController(IOrderService orderService)
+        public OrdersController(IOrderService orderService)
         {
             _orderService = orderService;
         }
 
-        // GET: api/order
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var orders = await _orderService.GetAllAsync();
-            return Ok(orders);
+            var result = await _orderService.GetAllAsync();
+            return Ok(result);
         }
 
-        // ✅ GET: api/order/{id}
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null) return NotFound();
-            return Ok(order);
+            var result = await _orderService.GetByIdAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
         }
 
-        // ✅ POST: api/order
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody] CreateOrderRequest request)
+        public async Task<IActionResult> Create(CreateOrderRequest dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var createdOrder = await _orderService.CreateAsync(request);
-
-            // ✅ Make sure GetById exists with {id} route parameter
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = createdOrder.Id }, createdOrder);
+            try
+            {
+                var created = await _orderService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        // PUT: api/order/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateOrderRequest request)
+        public async Task<IActionResult> Update(Guid id, UpdateOrderRequest dto)
         {
-            var updated = await _orderService.UpdateAsync(id, request);
+            var updated = await _orderService.UpdateAsync(id, dto);
             if (updated == null) return NotFound();
             return Ok(updated);
         }
 
-        // DELETE: api/order/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var deleted = await _orderService.DeleteAsync(id);
-            if (!deleted) return NotFound();
-            return NoContent();
+            var success = await _orderService.DeleteAsync(id);
+            return success ? NoContent() : NotFound();
         }
     }
 }

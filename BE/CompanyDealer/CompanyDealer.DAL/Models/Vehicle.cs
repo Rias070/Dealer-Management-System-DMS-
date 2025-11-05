@@ -25,5 +25,8 @@ namespace CompanyDealer.DAL.Models
 
         // Lịch sử lái thử
         public ICollection<TestDriveRecord> TestDriveRecords { get; set; } = new List<TestDriveRecord>();
+
+        // Đơn hàng
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

@@ -2,7 +2,7 @@
 using CompanyDealer.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CompanyDealer.DAL.Repository
+namespace CompanyDealer.DAL.Repository.OrderRepo
 {
     public class OrderRepository : IOrderRepository
     {
@@ -17,8 +17,8 @@ namespace CompanyDealer.DAL.Repository
         {
             return await _context.Orders
                 .Include(o => o.Dealer)
-                .Include(o => o.SaleContract)
-                .Include(o => o.Bill)
+                .Include(o => o.Customer)
+                .Include(o => o.Vehicle)
                 .ToListAsync();
         }
 
@@ -26,43 +26,40 @@ namespace CompanyDealer.DAL.Repository
         {
             return await _context.Orders
                 .Include(o => o.Dealer)
-                .Include(o => o.SaleContract)
-                .Include(o => o.Bill)
+                .Include(o => o.Customer)
+                .Include(o => o.Vehicle)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
-        public async Task<Order?> GetByOrderNumberAsync(string orderNumber)
+        public async Task AddAsync(Order order)
         {
-            return await _context.Orders
-                .Include(o => o.Dealer)
-                .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
+            await _context.Orders.AddAsync(order);
         }
 
-        public async Task<Order> CreateAsync(Order order)
+        public async Task UpdateAsync(Order order)
         {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-            return order;
+            _context.Orders.Update(order);
+            await Task.CompletedTask;
         }
 
-        public async Task<Order?> UpdateAsync(Order order)
+        public async Task DeleteAsync(Order order)
         {
-            var existing = await _context.Orders.FindAsync(order.Id);
-            if (existing == null) return null;
-
-            _context.Entry(existing).CurrentValues.SetValues(order);
-            await _context.SaveChangesAsync();
-            return existing;
-        }
-
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null) return false;
-
             _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
-            return true;
+            await Task.CompletedTask;
         }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        public Task<Customer?> GetCustomerByIdAsync(Guid id)
+        => _context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+
+        public Task<Dealer?> GetDealerByIdAsync(Guid id)
+            => _context.Dealers.FirstOrDefaultAsync(d => d.Id == id);
+
+        public Task<Vehicle?> GetVehicleByIdAsync(Guid id)
+            => _context.Vehicles.FirstOrDefaultAsync(v => v.Id == id);
     }
 }

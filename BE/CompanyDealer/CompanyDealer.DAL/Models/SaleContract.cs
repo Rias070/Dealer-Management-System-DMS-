@@ -10,8 +10,14 @@ namespace CompanyDealer.DAL.Models
         public string Terms { get; set; } = string.Empty;
         public string CustomerSignature { get; set; } = string.Empty;
         public string DealerSignature { get; set; } = string.Empty;
+
+        // Approval-related
+        public string Status { get; set; } = "Pending";  // "Pending", "Approved", "Rejected"
+        public DateTime? ApprovalDate { get; set; }
+        public string? RejectReason { get; set; }        // ⬅️ Added field
+
         public bool IsActive { get; set; } = true;
-        
+
         // Navigation property
         public Guid OrderId { get; set; }
         public Order Order { get; set; } = null!;

@@ -5,6 +5,7 @@ using CompanyDealer.DAL.Repository;
 using CompanyDealer.DAL.Repository.ContractRepo;
 using CompanyDealer.DAL.Repository.CustomerRepo;
 using CompanyDealer.DAL.Repository.FeedbackRepo;
+using CompanyDealer.DAL.Repository.OrderRepo;
 using CompanyDealer.DAL.Repository.RestockRepo;
 using CompanyDealer.DAL.Repository.VehicleRepo;
 using CompanyDealer.DataInitalizer;

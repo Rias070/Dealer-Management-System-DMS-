@@ -1,16 +1,17 @@
 ﻿using CompanyDealer.BLL.DTOs.OrderDTOs;
+using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Models;
-using CompanyDealer.DAL.Repository;
+using CompanyDealer.DAL.Repository.OrderRepo;
+using Microsoft.EntityFrameworkCore;
 
 namespace CompanyDealer.BLL.Services
-{
+{   
     public interface IOrderService
     {
         Task<IEnumerable<OrderResponse>> GetAllAsync();
         Task<OrderResponse?> GetByIdAsync(Guid id);
-        Task<OrderResponse?> GetByOrderNumberAsync(string orderNumber);
-        Task<OrderResponse> CreateAsync(CreateOrderRequest request);
-        Task<OrderResponse?> UpdateAsync(Guid id, UpdateOrderRequest request);
+        Task<OrderResponse> CreateAsync(CreateOrderRequest dto);
+        Task<OrderResponse?> UpdateAsync(Guid id, UpdateOrderRequest dto);
         Task<bool> DeleteAsync(Guid id);
     }
 
@@ -26,93 +27,91 @@ namespace CompanyDealer.BLL.Services
         public async Task<IEnumerable<OrderResponse>> GetAllAsync()
         {
             var orders = await _orderRepo.GetAllAsync();
-            return orders.Select(o => new OrderResponse
-            {
-                Id = o.Id,
-                OrderNumber = o.OrderNumber,
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                CustomerName = o.CustomerName,
-                CustomerContact = o.CustomerContact,
-                DealerId = o.DealerId,
-                DealerName = o.Dealer?.Name
-            });
+            return orders.Select(MapToResponse);
         }
 
         public async Task<OrderResponse?> GetByIdAsync(Guid id)
         {
-            var o = await _orderRepo.GetByIdAsync(id);
-            if (o == null) return null;
-
-            return new OrderResponse
-            {
-                Id = o.Id,
-                OrderNumber = o.OrderNumber,
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                CustomerName = o.CustomerName,
-                CustomerContact = o.CustomerContact,
-                DealerId = o.DealerId,
-                DealerName = o.Dealer?.Name
-            };
+            var order = await _orderRepo.GetByIdAsync(id);
+            return order == null ? null : MapToResponse(order);
         }
 
-        public async Task<OrderResponse?> GetByOrderNumberAsync(string orderNumber)
+        public async Task<OrderResponse> CreateAsync(CreateOrderRequest  dto)
         {
-            var o = await _orderRepo.GetByOrderNumberAsync(orderNumber);
-            if (o == null) return null;
+            // --- Validate Customer ---
+            var customer = await _orderRepo.GetCustomerByIdAsync(dto.CustomerId);
+            if (customer == null)
+                throw new KeyNotFoundException("Customer not found");
 
-            return new OrderResponse
-            {
-                Id = o.Id,
-                OrderNumber = o.OrderNumber,
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                CustomerName = o.CustomerName,
-                CustomerContact = o.CustomerContact,
-                DealerId = o.DealerId,
-                DealerName = o.Dealer?.Name
-            };
-        }
+            // --- Validate Dealer ---
+            var dealer = await _orderRepo.GetDealerByIdAsync(dto.DealerId);
+            if (dealer == null)
+                throw new KeyNotFoundException("Dealer not found.");
 
-        public async Task<OrderResponse> CreateAsync(CreateOrderRequest request)
-        {
+            // --- Validate Vehicle ---
+            var vehicle = await _orderRepo.GetVehicleByIdAsync(dto.VehicleId);
+            if (vehicle == null)
+                throw new KeyNotFoundException("Vehicle not found.");
+
+            // --- Create Order ---
             var order = new Order
             {
                 Id = Guid.NewGuid(),
-                OrderNumber = request.OrderNumber,
-                OrderDate = request.OrderDate,
-                TotalAmount = request.TotalAmount,
-                Status = request.Status,
-                CustomerName = request.CustomerName,
-                CustomerContact = request.CustomerContact,
-                DealerId = request.DealerId
+                OrderNumber = $"ORD-{DateTime.UtcNow.Ticks}",
+                OrderDate = DateTime.UtcNow,
+                DealerId = dto.DealerId,
+                CustomerId = dto.CustomerId,
+                VehicleId = dto.VehicleId,
+                VehicleAmount = dto.VehicleAmount,
+                TotalAmount = vehicle.Price * dto.VehicleAmount,
+                Status = "Waiting For Approval",
+                CustomerName = dto.CustomerName ?? customer.Name,
+                CustomerContact = dto.CustomerContact ?? customer.Phone,
             };
 
-            var created = await _orderRepo.CreateAsync(order);
-            return await GetByIdAsync(created.Id) ?? throw new Exception("Failed to retrieve created order");
+            await _orderRepo.AddAsync(order);
+            await _orderRepo.SaveChangesAsync();
+
+            return MapToResponse(order);
         }
 
-        public async Task<OrderResponse?> UpdateAsync(Guid id, UpdateOrderRequest request)
+        public async Task<OrderResponse?> UpdateAsync(Guid id, UpdateOrderRequest dto)
         {
             var existing = await _orderRepo.GetByIdAsync(id);
             if (existing == null) return null;
 
-            existing.TotalAmount = request.TotalAmount;
-            existing.Status = request.Status;
-            existing.CustomerName = request.CustomerName;
-            existing.CustomerContact = request.CustomerContact;
+            existing.TotalAmount = dto.TotalAmount;
+            existing.Status = dto.Status;
+            existing.CustomerName = dto.CustomerName;
+            existing.CustomerContact = dto.CustomerContact;
 
-            var updated = await _orderRepo.UpdateAsync(existing);
-            return updated == null ? null : await GetByIdAsync(id);
+            await _orderRepo.UpdateAsync(existing);
+            await _orderRepo.SaveChangesAsync();
+
+            return MapToResponse(existing);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            return await _orderRepo.DeleteAsync(id);
+            var order = await _orderRepo.GetByIdAsync(id);
+            if (order == null) return false;
+
+            await _orderRepo.DeleteAsync(order);
+            await _orderRepo.SaveChangesAsync();
+            return true;
         }
+
+        private static OrderResponse MapToResponse(Order o) => new()
+        {
+            Id = o.Id,
+            OrderNumber = o.OrderNumber,
+            OrderDate = o.OrderDate,
+            TotalAmount = o.TotalAmount,
+            Status = o.Status,
+            CustomerName = o.Customer?.Name ?? "",
+            CustomerContact = o.Customer?.Phone ?? o.Customer?.Email ?? "",
+            DealerName = o.Dealer?.Name ?? "",
+            VehicleModel = o.Vehicle?.Model ?? ""
+        };
     }
 }

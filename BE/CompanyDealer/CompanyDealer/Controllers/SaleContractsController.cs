@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using CompanyDealer.BLL.DTOs.SaleContractDTOs;
 using CompanyDealer.BLL.Services;
 
@@ -10,103 +8,112 @@ namespace CompanyDealer.API.Controllers
     [Route("api/[controller]")]
     public class SaleContractController : ControllerBase
     {
-        private readonly ISaleContractService _saleContractService;
+        private readonly ISaleContractService _service;
 
-        public SaleContractController(ISaleContractService saleContractService)
+        public SaleContractController(ISaleContractService service)
         {
-            _saleContractService = saleContractService;
+            _service = service;
         }
 
-        /// <summary>
-        /// Get all sale contracts with optional filters.
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetAllAsync(
-            [FromQuery] Guid? orderId,
-            [FromQuery] string? contractNumber,
-            [FromQuery] DateTime? signDate,
-            [FromQuery] string? terms,
-            [FromQuery] string? customerSignature,
-            [FromQuery] string? dealerSignature,
-            [FromQuery] bool? isActive)
-        {
-            var result = await _saleContractService.GetAllAsync(orderId, contractNumber, signDate, terms, customerSignature, dealerSignature, isActive);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Get a sale contract by its unique ID.
-        /// </summary>
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
-        {
-            var result = await _saleContractService.GetByIdAsync(id);
-            if (result == null)
-                return NotFound(new { Message = $"Sale contract with ID {id} not found." });
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Get a sale contract by its contract number.
-        /// </summary>
-        [HttpGet("by-number/{contractNumber}")]
-        public async Task<IActionResult> GetByContractNumberAsync(string contractNumber)
-        {
-            var result = await _saleContractService.GetByContractNumberAsync(contractNumber);
-            if (result == null)
-                return NotFound(new { Message = $"Contract number '{contractNumber}' not found." });
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Create a new sale contract.
-        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody] CreateSaleContractRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateSaleContractRequest dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
-                var created = await _saleContractService.CreateAsync(request);
-                return CreatedAtAction("GetById", new { id = created.Id }, created);
+                var created = await _service.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Update an existing sale contract.
-        /// </summary>
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateSaleContractRequest request)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _service.GetByIdAsync(id);
+            if (result == null)
+                return NotFound(new { message = "Contract not found" });
 
-            var updated = await _saleContractService.UpdateAsync(id, request);
-            if (updated == null)
-                return NotFound(new { Message = $"Sale contract with ID {id} not found." });
-
-            return Ok(updated);
+            return Ok(result);
         }
 
-        /// <summary>
-        /// Delete a sale contract (hard delete by default).
-        /// </summary>
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteAsync(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            var deleted = await _saleContractService.DeleteAsync(id);
-            if (!deleted)
-                return NotFound(new { Message = $"Sale contract with ID {id} not found." });
-
-            return NoContent();
+            var contracts = await _service.GetAllAsync();
+            return Ok(contracts);
         }
+
+        [HttpPatch("{id}/deactivate")]
+        public async Task<IActionResult> Deactivate(Guid id)
+        {
+            var success = await _service.DeactivateAsync(id);
+            if (!success)
+                return NotFound(new { message = "Contract not found" });
+
+            return Ok(new { message = "Contract deactivated successfully" });
+        }
+
+        [HttpPatch("{id}/approve")]
+        public async Task<IActionResult> Approve(Guid id, [FromBody] string dealerSignature)
+        {
+            try
+            {
+                var result = await _service.ApproveAsync(id, dealerSignature);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        public class RejectRequest
+        {
+            public string Reason { get; set; } = string.Empty;
+        }
+
+
+        [HttpPatch("{id}/reject")]
+        public async Task<IActionResult> Reject(Guid id, [FromBody] RejectRequest request)
+        {
+            try
+            {
+                var result = await _service.RejectAsync(id, request.Reason);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
     }
 }

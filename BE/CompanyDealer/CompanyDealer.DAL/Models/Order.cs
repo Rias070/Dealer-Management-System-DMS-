@@ -14,11 +14,24 @@ namespace CompanyDealer.DAL.Models
         public string CustomerContact { get; set; } = string.Empty;
         
         // Navigation properties
+
+        //Dealer
         public Guid DealerId { get; set; }
         public Dealer Dealer { get; set; } = null!;
+
+        //Customer
+        public Guid CustomerId { get; set; }
+        public Customer Customer { get; set; }
         
+        //Vehicles
+        public Guid VehicleId { get; set; }
+        public Vehicle Vehicle { get; set; }
+        public decimal VehicleAmount { get; set; }
+
+        //Sale Contract
         public SaleContract? SaleContract { get; set; }
         
+        //Bill
         public Bill? Bill { get; set; }
 
         // Collections

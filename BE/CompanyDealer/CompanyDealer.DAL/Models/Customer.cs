@@ -13,5 +13,6 @@ namespace CompanyDealer.DAL.Models
         public DateTime CreatedAt { get; set; }     // Registration date
         public bool IsActive { get; set; }          // Status
         public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

@@ -144,8 +144,17 @@ namespace CompanyDealer.DAL.Data
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Dealer)
                 .WithMany(d => d.Orders)
-                .HasForeignKey(o => o.DealerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(o => o.DealerId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Customer)
+                .WithMany(c => c.Orders)
+                .HasForeignKey(o => o.CustomerId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Vehicle)
+                .WithMany(v => v.Orders)
+                .HasForeignKey(o => o.VehicleId);
 
             // Order-Bill one-to-one (Bill is dependent)
             modelBuilder.Entity<Bill>()

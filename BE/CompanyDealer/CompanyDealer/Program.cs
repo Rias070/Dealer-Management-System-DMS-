@@ -4,6 +4,7 @@ using CompanyDealer.DAL.Data;
 using CompanyDealer.DAL.Repository;
 using CompanyDealer.DAL.Repository.ContractRepo;
 using CompanyDealer.DAL.Repository.CustomerRepo;
+using CompanyDealer.DAL.Repository.FeedbackRepo;
 using CompanyDealer.DAL.Repository.RestockRepo;
 using CompanyDealer.DAL.Repository.VehicleRepo;
 using CompanyDealer.DataInitalizer;
@@ -14,7 +15,6 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -138,6 +138,8 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<ContractService>();
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 // Dealer services
 builder.Services.AddScoped<CompanyDealer.DAL.Repository.DealerRepo.IDealerRepository, CompanyDealer.DAL.Repository.DealerRepo.DealerRepository>();
@@ -150,6 +152,16 @@ builder.Services.AddScoped<ITestDriveService, TestDriveService>();
 
 // Register repository interface
 //
+
+//SaleContract
+builder.Services.AddScoped<CompanyDealer.DAL.Repository.SaleContractRepo.ISaleContractRepository, CompanyDealer.DAL.Repository.SaleContractRepo.SaleContractRepository>();
+builder.Services.AddScoped<ISaleContractService, SaleContractService>();
+
+//Order
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 
 builder.Services.AddControllers()

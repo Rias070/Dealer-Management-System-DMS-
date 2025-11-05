@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using System.Security.Claims;
-using CompanyDealer.DAL.Migrations;
+
 
 namespace CompanyDealer.Controllers
 {

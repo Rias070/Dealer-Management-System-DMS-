@@ -85,6 +85,7 @@ namespace CompanyDealer.BLL.Services
 
         public async Task<TestDriveResponse> CreateAsync(CreateTestDriveRequest request, Guid createdBy, string createdByName)
         {
+
             // Validate test date is in the future
             if (request.TestDate <= DateTime.UtcNow)
                 throw new ArgumentException("Test date must be in the future");
@@ -244,11 +245,6 @@ namespace CompanyDealer.BLL.Services
             var updated = await _testDriveRepository.UpdateAsync(testDrive);
             return MapToResponse(updated);
         }
-        public async Task<IEnumerable<TestDriveResponse>> GetTestDriveByDealerIdAsync(Guid dealerId)
-        {
-            var testDrives = await _testDriveRepository.GetByDealerIdAsync(dealerId);
-            return testDrives.Select(MapToResponse);
-        }
 
         private TestDriveResponse MapToResponse(TestDriveRecord testDrive)
         {
@@ -286,6 +282,11 @@ namespace CompanyDealer.BLL.Services
                     VIN = testDrive.Vehicle.VIN
                 } : null
             };
+        }
+
+        public Task<IEnumerable<TestDriveResponse>> GetTestDriveByDealerIdAsync(Guid dealerId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CompanyDealer.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,6 +22,24 @@ namespace CompanyDealer.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Customers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    Dob = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -60,6 +78,45 @@ namespace CompanyDealer.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Roles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleName = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Vehicles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Make = table.Column<string>(type: "text", nullable: false),
+                    Model = table.Column<string>(type: "text", nullable: false),
+                    Year = table.Column<int>(type: "integer", nullable: false),
+                    VIN = table.Column<string>(type: "text", nullable: false),
+                    Color = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Vehicles_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Accounts",
                 columns: table => new
                 {
@@ -71,7 +128,6 @@ namespace CompanyDealer.DAL.Migrations
                     Address = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    Role = table.Column<int>(type: "integer", nullable: false),
                     Username = table.Column<string>(type: "text", nullable: false),
                     Password = table.Column<string>(type: "text", nullable: false),
                     DealerId = table.Column<Guid>(type: "uuid", nullable: false)
@@ -119,13 +175,18 @@ namespace CompanyDealer.DAL.Migrations
                     Content = table.Column<string>(type: "text", nullable: false),
                     Rating = table.Column<int>(type: "integer", nullable: false),
                     SubmissionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CustomerName = table.Column<string>(type: "text", nullable: false),
-                    CustomerContact = table.Column<string>(type: "text", nullable: false),
-                    DealerId = table.Column<Guid>(type: "uuid", nullable: false)
+                    DealerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Feedbacks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Feedbacks_Dealers_DealerId",
                         column: x => x.DealerId,
@@ -139,7 +200,6 @@ namespace CompanyDealer.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Quantity = table.Column<int>(type: "integer", nullable: false),
                     LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DealerId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -179,34 +239,149 @@ namespace CompanyDealer.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Vehicles",
+                name: "TestDriveRecords",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Make = table.Column<string>(type: "text", nullable: false),
-                    Model = table.Column<string>(type: "text", nullable: false),
-                    Year = table.Column<int>(type: "integer", nullable: false),
-                    VIN = table.Column<string>(type: "text", nullable: false),
-                    Color = table.Column<string>(type: "text", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    IsAvailable = table.Column<bool>(type: "boolean", nullable: false),
-                    InventoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false)
+                    TestDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CustomerName = table.Column<string>(type: "text", nullable: false),
+                    CustomerContact = table.Column<string>(type: "text", nullable: false),
+                    Notes = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedByName = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ApprovedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    ApprovedByName = table.Column<string>(type: "text", nullable: false),
+                    ApprovedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    RejectionReason = table.Column<string>(type: "text", nullable: false),
+                    RejectedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DealerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VehicleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    table.PrimaryKey("PK_TestDriveRecords", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Vehicles_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
+                        name: "FK_TestDriveRecords_Dealers_DealerId",
+                        column: x => x.DealerId,
+                        principalTable: "Dealers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TestDriveRecords_Vehicles_VehicleId",
+                        column: x => x.VehicleId,
+                        principalTable: "Vehicles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AccountRole",
+                columns: table => new
+                {
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountRole", x => new { x.AccountId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AccountRole_Account_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AccountRole_Role_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RestockRequests",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DealerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VehicleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VehicleName = table.Column<string>(type: "text", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    RequestDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ResponseDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    AcceptenceLevel = table.Column<string>(type: "text", nullable: false),
+                    AcceptedBy = table.Column<string>(type: "text", nullable: false),
+                    ReasonRejected = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RestockRequests", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_RestockRequests_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Vehicles_Inventories_InventoryId",
+                        name: "FK_RestockRequests_Dealers_DealerId",
+                        column: x => x.DealerId,
+                        principalTable: "Dealers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_RestockRequests_Vehicles_VehicleId",
+                        column: x => x.VehicleId,
+                        principalTable: "Vehicles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tokens_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InventoryVehicles",
+                columns: table => new
+                {
+                    InventoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VehicleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InventoryVehicles", x => new { x.InventoryId, x.VehicleId });
+                    table.ForeignKey(
+                        name: "FK_InventoryVehicles_Inventories_InventoryId",
                         column: x => x.InventoryId,
                         principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_InventoryVehicles_Vehicles_VehicleId",
+                        column: x => x.VehicleId,
+                        principalTable: "Vehicles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -313,33 +488,39 @@ namespace CompanyDealer.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TestDriveRecords",
+                name: "Contracts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TestDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CustomerName = table.Column<string>(type: "text", nullable: false),
-                    CustomerContact = table.Column<string>(type: "text", nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: false),
+                    ContractId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RestockRequestId = table.Column<Guid>(type: "uuid", nullable: false),
                     DealerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    VehicleId = table.Column<Guid>(type: "uuid", nullable: false)
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Notes = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TestDriveRecords", x => x.Id);
+                    table.PrimaryKey("PK_Contracts", x => x.ContractId);
                     table.ForeignKey(
-                        name: "FK_TestDriveRecords_Dealers_DealerId",
+                        name: "FK_Contracts_Dealers_DealerId",
                         column: x => x.DealerId,
                         principalTable: "Dealers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TestDriveRecords_Vehicles_VehicleId",
-                        column: x => x.VehicleId,
-                        principalTable: "Vehicles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        name: "FK_Contracts_RestockRequests_RestockRequestId",
+                        column: x => x.RestockRequestId,
+                        principalTable: "RestockRequests",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountRole_RoleId",
+                table: "AccountRole",
+                column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_DealerId",
@@ -353,9 +534,24 @@ namespace CompanyDealer.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Contracts_DealerId",
+                table: "Contracts",
+                column: "DealerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Contracts_RestockRequestId",
+                table: "Contracts",
+                column: "RestockRequestId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DealerContracts_DealerId",
                 table: "DealerContracts",
                 column: "DealerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_CustomerId",
+                table: "Feedbacks",
+                column: "CustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Feedbacks_DealerId",
@@ -366,6 +562,11 @@ namespace CompanyDealer.DAL.Migrations
                 name: "IX_Inventories_DealerId",
                 table: "Inventories",
                 column: "DealerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryVehicles_VehicleId",
+                table: "InventoryVehicles",
+                column: "VehicleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderPromotions_PromotionsId",
@@ -388,6 +589,21 @@ namespace CompanyDealer.DAL.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RestockRequests_AccountId",
+                table: "RestockRequests",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RestockRequests_DealerId",
+                table: "RestockRequests",
+                column: "DealerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RestockRequests_VehicleId",
+                table: "RestockRequests",
+                column: "VehicleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SaleContracts_OrderId",
                 table: "SaleContracts",
                 column: "OrderId",
@@ -404,30 +620,36 @@ namespace CompanyDealer.DAL.Migrations
                 column: "VehicleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tokens_AccountId",
+                table: "Tokens",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_CategoryId",
                 table: "Vehicles",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vehicles_InventoryId",
-                table: "Vehicles",
-                column: "InventoryId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Accounts");
+                name: "AccountRole");
 
             migrationBuilder.DropTable(
                 name: "Bills");
+
+            migrationBuilder.DropTable(
+                name: "Contracts");
 
             migrationBuilder.DropTable(
                 name: "DealerContracts");
 
             migrationBuilder.DropTable(
                 name: "Feedbacks");
+
+            migrationBuilder.DropTable(
+                name: "InventoryVehicles");
 
             migrationBuilder.DropTable(
                 name: "OrderPromotions");
@@ -442,22 +664,37 @@ namespace CompanyDealer.DAL.Migrations
                 name: "TestDriveRecords");
 
             migrationBuilder.DropTable(
+                name: "Tokens");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "RestockRequests");
+
+            migrationBuilder.DropTable(
+                name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Inventories");
+
+            migrationBuilder.DropTable(
                 name: "Promotions");
 
             migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
+                name: "Accounts");
+
+            migrationBuilder.DropTable(
                 name: "Vehicles");
 
             migrationBuilder.DropTable(
-                name: "Categories");
-
-            migrationBuilder.DropTable(
-                name: "Inventories");
-
-            migrationBuilder.DropTable(
                 name: "Dealers");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
         }
     }
 }

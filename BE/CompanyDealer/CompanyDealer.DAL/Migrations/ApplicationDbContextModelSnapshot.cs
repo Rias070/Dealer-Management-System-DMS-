@@ -292,13 +292,8 @@ namespace CompanyDealer.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("CustomerContact")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("DealerId")
                         .HasColumnType("uuid");
@@ -310,6 +305,8 @@ namespace CompanyDealer.DAL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("DealerId");
 
@@ -799,11 +796,19 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Feedback", b =>
                 {
+                    b.HasOne("CompanyDealer.DAL.Models.Customer", "Customer")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
                         .WithMany("Feedbacks")
                         .HasForeignKey("DealerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Dealer");
                 });
@@ -966,6 +971,11 @@ namespace CompanyDealer.DAL.Migrations
                     b.Navigation("Quotations");
 
                     b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("CompanyDealer.DAL.Models.Customer", b =>
+                {
+                    b.Navigation("Feedbacks");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Dealer", b =>

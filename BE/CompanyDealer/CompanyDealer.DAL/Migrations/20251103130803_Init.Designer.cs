@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CompanyDealer.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251029034422_Contract")]
-    partial class Contract
+    [Migration("20251103130803_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -147,6 +147,79 @@ namespace CompanyDealer.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("CompanyDealer.DAL.Models.Contract", b =>
+                {
+                    b.Property<Guid>("ContractId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DealerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RestockRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("ContractId");
+
+                    b.HasIndex("DealerId");
+
+                    b.HasIndex("RestockRequestId");
+
+                    b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("CompanyDealer.DAL.Models.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Dob")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Customers");
+                });
+
             modelBuilder.Entity("CompanyDealer.DAL.Models.Dealer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -222,13 +295,8 @@ namespace CompanyDealer.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("CustomerContact")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("DealerId")
                         .HasColumnType("uuid");
@@ -240,6 +308,8 @@ namespace CompanyDealer.DAL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("DealerId");
 
@@ -697,6 +767,25 @@ namespace CompanyDealer.DAL.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("CompanyDealer.DAL.Models.Contract", b =>
+                {
+                    b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
+                        .WithMany()
+                        .HasForeignKey("DealerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CompanyDealer.DAL.Models.RestockRequest", "RestockRequest")
+                        .WithMany()
+                        .HasForeignKey("RestockRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Dealer");
+
+                    b.Navigation("RestockRequest");
+                });
+
             modelBuilder.Entity("CompanyDealer.DAL.Models.DealerContract", b =>
                 {
                     b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
@@ -710,11 +799,19 @@ namespace CompanyDealer.DAL.Migrations
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Feedback", b =>
                 {
+                    b.HasOne("CompanyDealer.DAL.Models.Customer", "Customer")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("CompanyDealer.DAL.Models.Dealer", "Dealer")
                         .WithMany("Feedbacks")
                         .HasForeignKey("DealerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Dealer");
                 });
@@ -877,6 +974,11 @@ namespace CompanyDealer.DAL.Migrations
                     b.Navigation("Quotations");
 
                     b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("CompanyDealer.DAL.Models.Customer", b =>
+                {
+                    b.Navigation("Feedbacks");
                 });
 
             modelBuilder.Entity("CompanyDealer.DAL.Models.Dealer", b =>
